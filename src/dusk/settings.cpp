@@ -65,6 +65,7 @@ UserSettings g_userSettings = {
         .autoSave {"game.autoSave", false},
         .enhancedMapMenus {"game.enhancedMapMenus", false},
         .aimingReticle {"game.aimingReticle", false},
+        .noHitStun {"game.noHitStun", false},
 
         // Preferences
         .enableMirrorMode {"game.enableMirrorMode", false},
@@ -157,6 +158,7 @@ UserSettings g_userSettings = {
         .armorRupeeDrain {"game.armorRupeeDrain", MagicArmorMode::NORMAL},
         .invincibleEnemies {"game.invincibleEnemies", false},
         .easyQuickSpin {"game.easyQuickSpin", false},
+        .infiniteEponaStamina {"game.infiniteEponaStamina", false},
 
         // Technical
         .restoreWiiGlitches {"game.restoreWiiGlitches", false},
@@ -188,6 +190,7 @@ UserSettings g_userSettings = {
 #endif
         .graphicsBackend {"backend.graphicsBackend", "auto"},
         .skipPreLaunchUI {"backend.skipPreLaunchUI", false},
+        .showPipelineCompilation {"backend.showPipelineCompilation", true},
         .wasPresetChosen {"backend.wasPresetChosen", false},
         .checkForUpdates {"backend.checkForUpdates", true},
         .checkForModUpdates {"backend.checkForModUpdates", true},
@@ -310,7 +313,7 @@ void registerSettings() {
     Register(g_userSettings.video.rememberWindowSize);
     Register(g_userSettings.video.lastWindowWidth);
     Register(g_userSettings.video.lastWindowHeight);
-    Register(g_userSettings.video.uiScale, 
+    Register(g_userSettings.video.uiScale,
         [](const int&, const int&) { dusk::ui::apply_scale(); });
 
     // Audio
@@ -346,6 +349,7 @@ void registerSettings() {
     Register(g_userSettings.game.autoSave);
     Register(g_userSettings.game.enhancedMapMenus);
     Register(g_userSettings.game.aimingReticle);
+    Register(g_userSettings.game.noHitStun);
     Register(g_userSettings.game.enableMirrorMode);
     Register(g_userSettings.game.invertCameraXAxis);
     Register(g_userSettings.game.invertCameraYAxis);
@@ -416,6 +420,7 @@ void registerSettings() {
     Register(g_userSettings.game.alwaysGreatspin);
     Register(g_userSettings.game.invincibleEnemies);
     Register(g_userSettings.game.easyQuickSpin);
+    Register(g_userSettings.game.infiniteEponaStamina);
 
     Register(g_userSettings.game.enableFrameInterpolation);
     Register(g_userSettings.game.enableGyroAim);
@@ -455,6 +460,7 @@ void registerSettings() {
 #endif
     Register(g_userSettings.backend.graphicsBackend);
     Register(g_userSettings.backend.skipPreLaunchUI);
+    Register(g_userSettings.backend.showPipelineCompilation);
     Register(g_userSettings.backend.wasPresetChosen);
     Register(g_userSettings.backend.checkForUpdates);
     Register(g_userSettings.backend.checkForModUpdates);

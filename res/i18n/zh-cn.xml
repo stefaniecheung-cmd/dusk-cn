@@ -1445,4 +1445,10 @@
   <entry key="SAVE">保存</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">复制颜色</entry>
+  <entry key="IMPORT_ANYWAY">仍然导入</entry>
+  <entry key="REGION_VERSION_WARNING">该存档来自与当前配置光盘不同的地区或平台版本，可能无法正常运行。</entry>
+  <entry key="NO_HIT_STUN">无受击硬直</entry>
+  <entry key="NO_HIT_STUN_HELP">关闭攻击后的受击硬直帧。</entry>
+  <entry key="INFINITE_EPONA_STAMINA">艾波娜无限体力</entry>
+  <entry key="INFINITE_EPONA_STAMINA_HELP">艾波娜的体力不会消耗。</entry>
 </localization>

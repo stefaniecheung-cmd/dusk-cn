@@ -7,6 +7,7 @@
 #include "dusk/achievements.h"
 #include "dusk/action_bindings.h"
 #include "dusk/livesplit.h"
+#include "dusk/mod_loader.hpp"
 #include "dusk/settings.h"
 #include "dusk/speedrun.h"
 
@@ -39,16 +40,18 @@ const Rml::String kDocumentSource = R"RML(
 <body>
     <fps id="fps" />
     <pipeline-progress id="pipeline-progress">
-        <pipeline-status>
-            <icon class="pipeline-spinner">&#xe9d0;</icon>
-            <span id="pipeline-progress-label" />
-        </pipeline-status>
+        <status>
+            <icon />
+            <status-label id="pipeline-progress-label" />
+        </status>
         <progress id="pipeline-progress-bar" />
     </pipeline-progress>
     <speedrun-timer id="speedrun-timer">
         <speedrun-rta id="speedrun-rta" />
         <speedrun-igt id="speedrun-igt" />
     </speedrun-timer>
+    <mods-display id="mods-display">
+    </mods-display>
 </body>
 </rml>
 )RML";
@@ -237,6 +240,7 @@ Overlay::Overlay() : Document(kDocumentSource, true, DocumentScope::Overlay) {
     mSpeedrunTimer = mDocument->GetElementById("speedrun-timer");
     mSpeedrunRta = mDocument->GetElementById("speedrun-rta");
     mSpeedrunIgt = mDocument->GetElementById("speedrun-igt");
+    mModsDisplay = mDocument->GetElementById("mods-display");
 
     listen(mDocument, Rml::EventId::Focus, [](Rml::Event&) { Log.warn("Overlay received focus"); });
     listen(mDocument, Rml::EventId::Transitionend, [this](Rml::Event& event) {
@@ -372,6 +376,24 @@ void Overlay::update() {
         }
     }
 
+    if (mModsDisplay != nullptr) {
+        if (dusk::speedrun::isActive() && !dusk::mods::ModLoader::instance().active_mods().empty()) {
+            std::string enabled_mods_list;
+            for (const auto& mod : dusk::mods::ModLoader::instance().active_mods()) {
+                const std::string& displayName = mod.metadata.name.empty() ? mod.metadata.id : mod.metadata.name;
+                if (!enabled_mods_list.empty()) {
+                    enabled_mods_list += "\n";
+                }
+                enabled_mods_list += fmt::format("• {}", displayName);
+            }
+
+            mModsDisplay->SetAttribute("open", "");
+            set_text_content(mModsDisplay, fmt::format("Enabled Mods:\n{}", enabled_mods_list));
+        } else {
+            mModsDisplay->RemoveAttribute("open");
+        }
+    }
+
     u32 count = 0;
     const bool showControllerWarning = PADGetIndexForPort(PAD_CHAN0) < 0 &&
                                        PADGetKeyButtonBindings(PAD_CHAN0, &count) == nullptr &&
@@ -490,7 +512,9 @@ void Overlay::update_pipeline_progress() {
     }
     mPipelineProgressBar->SetAttribute("value", progress);
 
-    if (clock::now() >= mPipelineProgressStartTime + kPipelineProgressOpenDelay) {
+    if (getSettings().backend.showPipelineCompilation.getValue() &&
+        clock::now() >= mPipelineProgressStartTime + kPipelineProgressOpenDelay)
+    {
         mPipelineProgress->SetAttribute("open", "");
     } else {
         mPipelineProgress->RemoveAttribute("open");

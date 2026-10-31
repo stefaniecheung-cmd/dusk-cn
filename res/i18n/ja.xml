@@ -1445,4 +1445,10 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="IMPORT_ANYWAY">それでもインポート</entry>
+  <entry key="REGION_VERSION_WARNING">このセーブは設定されたディスクと異なる地域・プラットフォームのもののため、正しく動作しない可能性があります。</entry>
+  <entry key="NO_HIT_STUN">のけぞり無効</entry>
+  <entry key="NO_HIT_STUN_HELP">攻撃後ののけぞりフレームを無効化します。</entry>
+  <entry key="INFINITE_EPONA_STAMINA">エポナのスタミナ無限</entry>
+  <entry key="INFINITE_EPONA_STAMINA_HELP">エポナのスタミナが消耗しなくなります。</entry>
 </localization>

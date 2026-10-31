@@ -159,7 +159,7 @@ pipeline-progress[open] {
     filter: opacity(1);
 }
 
-pipeline-status {
+pipeline-progress status {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
@@ -168,13 +168,13 @@ pipeline-status {
     white-space: nowrap;
 }
 
-icon.pipeline-spinner {
+pipeline-progress icon {
+    flex: 0 0 auto;
     width: 1.2em;
     height: 1.2em;
-    line-height: 1.2em;
     font-size: 1.2em;
     color: var(--color-accent);
-    text-align: center;
+    decorator: text("&#xe9d0;" center center);
     transform-origin: center;
     animation: 1s linear infinite pipeline-spinner-spin;
 }
@@ -271,6 +271,26 @@ speedrun-rta[open] {
 }
 
 speedrun-igt {
+    display: block;
+}
+
+mods-display {
+    display: none;
+    position: absolute;
+    top: 220dp;
+    left: 12dp;
+    z-index: 99;
+    padding: 9dp var(--space-md);
+    border-color: var(--color-border);
+    border-radius: var(--radius-control);
+    border-width: 1dp;
+    background-color: rgba(var(--color-surface-rgb), 80%);
+    pointer-events: none;
+    font-size: var(--font-size-md);
+    white-space: pre-wrap;
+}
+
+mods-display[open] {
     display: block;
 }
 

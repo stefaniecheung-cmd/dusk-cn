@@ -1445,4 +1445,10 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="IMPORT_ANYWAY">Import Anyway</entry>
+  <entry key="REGION_VERSION_WARNING"> This save is from a different region or platform than the configured disc and may not work correctly.</entry>
+  <entry key="NO_HIT_STUN">No Hit Stun</entry>
+  <entry key="NO_HIT_STUN_HELP">Disables hit stun frames after attacks.</entry>
+  <entry key="INFINITE_EPONA_STAMINA">Infinite Epona Stamina</entry>
+  <entry key="INFINITE_EPONA_STAMINA_HELP">Prevents Epona&#39;s stamina from depleting.</entry>
 </localization>

@@ -1445,4 +1445,10 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="IMPORT_ANYWAY">Importer quand m&#234;me</entry>
+  <entry key="REGION_VERSION_WARNING"> Cette sauvegarde provient d&#39;une r&#233;gion ou d&#39;une plateforme diff&#233;rente du disque configur&#233; et peut ne pas fonctionner correctement.</entry>
+  <entry key="NO_HIT_STUN">Pas d&#39;&#233;tourdissement</entry>
+  <entry key="NO_HIT_STUN_HELP">D&#233;sactive les images d&#39;&#233;tourdissement apr&#232;s les attaques.</entry>
+  <entry key="INFINITE_EPONA_STAMINA">Endurance d&#39;Epona infinie</entry>
+  <entry key="INFINITE_EPONA_STAMINA_HELP">L&#39;endurance d&#39;Epona ne s&#39;&#233;puise plus.</entry>
 </localization>

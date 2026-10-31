@@ -288,9 +288,12 @@ void confirm_import(Artifact artifact) {
         show_message("[IMPORT_FAILED]", context.result.message, true, &finish_import_flow);
         return;
     }
-    if (!raw && (artifact.header.game != context.value.identity.game ||
-                    artifact.header.maker != context.value.identity.maker))
-    {
+    const auto compatibility =
+        raw ? save_manager::DiscCompatibility::Exact :
+              save_manager::disc_compatibility(artifact.header, context.value.identity);
+    const bool changingVersion = (compatibility == save_manager::DiscCompatibility::RegionChange ||
+                                 compatibility == save_manager::DiscCompatibility::PlatformChange);
+    if (compatibility == save_manager::DiscCompatibility::Incompatible) {
         show_message("[IMPORT_FAILED]", "[THIS_SAVE_DOES_NOT_MATCH_THE_CONFIGURED_DISC]", true,
             &finish_import_flow);
         return;
@@ -343,7 +346,7 @@ void confirm_import(Artifact artifact) {
             {
                 {.label = "[CANCEL]", .onPressed = cancel},
                 {
-                    .label = "[IMPORT]",
+                    .label = changingVersion ? "[IMPORT_ANYWAY]" : "[IMPORT]",
                     .onPressed =
                         [items, keepModData, hasBundledModData](Modal& modal) {
                             const auto action = hasBundledModData ? ModDataAction::Replace :
@@ -353,6 +356,7 @@ void confirm_import(Artifact artifact) {
                         },
                     .isDisabled =
                         [items] { return std::ranges::none_of(*items, &ImportItem::selected); },
+                    .icon = changingVersion ? "warning" : "",
                 },
             },
         .onDismiss = cancel,
@@ -372,8 +376,9 @@ void confirm_import(Artifact artifact) {
         }
     } else {
         modal->set_body(
-            fmt::format("{} <b>{}</b> {}", replacingSave ? "[REPLACE_THE]" : "[IMPORT_THE]",
+            fmt::format("{} <b>{}</b>{} {}", replacingSave ? "[REPLACE_THE]" : "[IMPORT_THE]",
                 escape(mode_label(items->front().context.identity.saveName)),
+                changingVersion ? "[REGION_VERSION_WARNING]" : "",
                 replacingSave ? "[SAVE_A_BACKUP_WILL_BE_MADE_FIRST]" : "[SAVE_QUESTION]"));
     }
     if (!replacingRawImage) {
