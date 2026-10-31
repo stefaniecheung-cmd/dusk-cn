@@ -185,12 +185,14 @@ struct UserSettings {
         ConfigVar<int> lastWindowWidth;
         ConfigVar<int> lastWindowHeight;
         ConfigVar<int> uiScale;
+#if defined(__SWITCH__)
         // Switch-only: request the Tegra X1 CPU boost clock (1785 MHz) to win back
         // headroom on the CPU-bound frame loop. No-op on other platforms.
         ConfigVar<bool> cpuBoost;
         // Switch-only "Boost+" tier: GPU 921 MHz + memory (EMC) 1600 MHz on top of the 1785 MHz CPU.
         // These GPU/EMC clocks are an overclock (need sys-clk-OC). No-op on other platforms.
         ConfigVar<bool> cpuBoostPlus;
+#endif
     } video;
 
     struct {
