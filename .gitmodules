@@ -10,3 +10,7 @@
 [submodule "mods/cosmetics"]
 	path = mods/cosmetics
 	url = https://github.com/TwilitRealm/dusklight-cosmetics
+[submodule "extern/aurora-switch"]
+	path = extern/aurora-switch
+	url = https://github.com/HayatoG/aurora-switch.git
+	branch = dusklight-switch-port

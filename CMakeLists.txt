@@ -78,11 +78,22 @@ set(AURORA_ENABLE_DVD ON CACHE BOOL "Enable DVD API support" FORCE)
 set(AURORA_ENABLE_CARD ON CACHE BOOL "Enable CARD API support" FORCE)
 set(AURORA_ENABLE_THP ON CACHE BOOL "Enable THP decoder" FORCE)
 set(AURORA_ENABLE_RMLUI ON CACHE BOOL "Enable RmlUi UI support" FORCE)
-include(cmake/ApplyAuroraPatch.cmake)
-dusk_apply_aurora_patch(
-        "${CMAKE_CURRENT_SOURCE_DIR}/extern/aurora"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ci/patches/aurora-rmlui-translate-callback.patch")
-add_subdirectory(extern/aurora EXCLUDE_FROM_ALL)
+# --- Switch platform overlay (single hook; see cmake/switch/) -----------------------------
+# Overrides the options above for Switch and pre-defines libzstd_static so the aurora
+# subdirectory below takes its "existing zstd" branch. No-op on PC platforms.
+include(cmake/switch/AuroraOptions.cmake)
+# ------------------------------------------------------------------------------------------
+if (AURORA_PLATFORM_SWITCH)
+    # Switch builds use the aurora-switch fork (libnx + Vulkan/NVK bring-up, SDL3/Tracy/RmlUi
+    # shims); the upstream rmlui-translate patch targets the PC aurora tree and is skipped.
+    add_subdirectory(extern/aurora-switch EXCLUDE_FROM_ALL)
+else ()
+    include(cmake/ApplyAuroraPatch.cmake)
+    dusk_apply_aurora_patch(
+            "${CMAKE_CURRENT_SOURCE_DIR}/extern/aurora"
+            "${CMAKE_CURRENT_SOURCE_DIR}/ci/patches/aurora-rmlui-translate-callback.patch")
+    add_subdirectory(extern/aurora EXCLUDE_FROM_ALL)
+endif ()
 target_compile_definitions(aurora_mtx PRIVATE MTX_USE_PS=1)
 
 add_subdirectory(extern/borealis EXCLUDE_FROM_ALL)
@@ -317,6 +328,10 @@ if (DUSK_GFX_DEBUG_GROUPS)
     target_compile_definitions(aurora_gx PRIVATE AURORA_GFX_DEBUG_GROUPS)
 endif ()
 
+# --- Switch platform overlay (single hook; see cmake/switch/) -----------------------------
+include(cmake/switch/DuskSetup.cmake)
+# ------------------------------------------------------------------------------------------
+
 # game_debug is for game code files that we know work when compiled with DEBUG=1
 # Of course, if building a release build, this distinction is irrelevant
 set(GAME_DEBUG_FILES
@@ -367,6 +382,10 @@ list(FILTER DUSK_INTERNAL_FILES INCLUDE REGEX "^src/dusk/")
 set(GAME_FILES ${_dusklight_all_files})
 list(FILTER GAME_FILES EXCLUDE REGEX "^src/dusk/")
 
+# --- Switch platform overlay (single hook; see cmake/switch/) -----------------------------
+include(cmake/switch/SourceFilter.cmake)
+# ------------------------------------------------------------------------------------------
+
 add_library(dusk_internal OBJECT ${DUSK_INTERNAL_FILES})
 if (ENABLE_ASAN)
     target_sources(dusk_internal PRIVATE src/dusk/asan_options.c)
@@ -387,6 +406,10 @@ target_compile_definitions(dusklight PRIVATE ${GAME_COMPILE_DEFS})
 target_include_directories(dusklight PRIVATE ${miniz_SOURCE_DIR})
 target_link_libraries(dusklight PRIVATE dusk_internal aurora::main ${GAME_LIBS} ${JSYSTEM_LINK_LIBRARIES})
 target_precompile_headers(dusklight PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/include/dusk_pch.hpp>")
+
+# --- Switch platform overlay (single hook; see cmake/switch/) -----------------------------
+include(cmake/switch/LinkOptions.cmake)
+# ------------------------------------------------------------------------------------------
 
 if (DUSK_ENABLE_CODE_MODS)
     include(cmake/SymbolManifest.cmake)

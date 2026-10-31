@@ -1,0 +1,79 @@
+# Switch (Nintendo Switch NRO) build — isolated from the upstream build.yml on purpose:
+# our fork tracks TwilitRealm/dusklight and this file is fork-local, so upstream CI changes
+# never conflict with it.
+#
+# STATUS (bring-up): the full NVK/Vulkan NRO build needs two artifacts that are NOT in this
+# repository (they were HayatoG's local mounts):
+#   1. dawn-switch — Dawn fork with the Switch Vulkan path (VK_NN_vi_surface, loaderless ICD).
+#      Provide via secret/release artifact and set DUSK_SWITCH_DAWN_DIR, or mount like
+#      platforms/switch/build-docker.sh does (platforms/switch/reference/dawn-switch).
+#   2. nvk-switch — Mesa NVK driver archive for the Switch (libvulkan.a). Provide via
+#      DAWN_SWITCH_NVK_ROOT (aurora-switch defaults to /opt/nvk-switch).
+# Until both are published, this workflow validates configure-time wiring only and is allowed
+# to fail (continue-on-error) without blocking the repo's CI status.
+
+name: Build Switch (NRO)
+
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+      - '*LICENSE'
+  workflow_dispatch:
+
+concurrency:
+  group: build-switch-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-switch:
+    name: Build Switch (devkitA64)
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    container:
+      image: devkitpro/devkita64:latest
+    steps:
+      - name: Install git + ninja
+        run: |
+          apt-get update
+          apt-get -y install git ninja-build ca-certificates
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Configure (Switch toolchain)
+        run: |
+          cmake -S . -B build-switch -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$DEVKITPRO/cmake/Switch.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DDUSK_MOVIE_SUPPORT=OFF \
+            -DDUSK_ENABLE_UPDATE_CHECKER=OFF \
+            -DDUSK_ENABLE_DISCORD=OFF \
+            -DAURORA_PLATFORM_SWITCH=ON \
+            -DAURORA_ENABLE_IMGUI=OFF \
+            -DAURORA_BACKEND_DEKO3D=OFF \
+            -DAURORA_BACKEND_GLES=OFF \
+            -DAURORA_BACKEND_DAWN_GL=OFF \
+            -DDAWN_PLATFORM_SWITCH=ON \
+            -DDAWN_ENABLE_VULKAN=ON \
+            -DDAWN_ENABLE_OPENGLES=OFF \
+            -DDAWN_ENABLE_DESKTOP_GL=OFF
+
+      - name: Build
+        run: cmake --build build-switch -j"$(nproc)"
+
+      - name: Package NRO
+        if: success()
+        run: |
+          bash platforms/switch/make-nro.sh || true
+          find . -name "*.nro" -o -name "*.elf" | head
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: dusklight-switch-nro
+          path: |
+            **/*.nro
