@@ -185,6 +185,12 @@ struct UserSettings {
         ConfigVar<int> lastWindowWidth;
         ConfigVar<int> lastWindowHeight;
         ConfigVar<int> uiScale;
+        // Switch-only: request the Tegra X1 CPU boost clock (1785 MHz) to win back
+        // headroom on the CPU-bound frame loop. No-op on other platforms.
+        ConfigVar<bool> cpuBoost;
+        // Switch-only "Boost+" tier: GPU 921 MHz + memory (EMC) 1600 MHz on top of the 1785 MHz CPU.
+        // These GPU/EMC clocks are an overclock (need sys-clk-OC). No-op on other platforms.
+        ConfigVar<bool> cpuBoostPlus;
     } video;
 
     struct {
@@ -228,6 +234,8 @@ struct UserSettings {
         ConfigVar<bool> enhancedMapMenus;
         ConfigVar<bool> aimingReticle;
         ConfigVar<bool> noHitStun;
+        // Skip the whole shadow pass pipeline (Switch perf lever; see d_com_inf_game.h drawShadow).
+        ConfigVar<bool> disableShadows;
 
         // Preferences
         ConfigVar<bool> enableMirrorMode;

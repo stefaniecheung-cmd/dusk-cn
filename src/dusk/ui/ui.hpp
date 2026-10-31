@@ -120,6 +120,9 @@ bool any_document_visible() noexcept;
 bool is_prelaunch_open() noexcept;
 bool game_obscured_below(const Document& doc) noexcept;
 Document* top_document() noexcept;
+// Direct access to the active document stack (Switch boot uses it to close the launcher
+// documents once the game takes over input; see m_Do_main.cpp). Mostly for platform layers.
+std::vector<std::unique_ptr<Document>>& document_stack() noexcept;
 
 std::filesystem::path resource_path(const std::filesystem::path& filename) noexcept;
 std::string escape(std::string_view str) noexcept;

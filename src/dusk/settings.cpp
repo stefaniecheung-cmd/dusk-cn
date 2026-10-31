@@ -26,6 +26,11 @@ UserSettings g_userSettings = {
         .lastWindowWidth {"video.lastWindowWidth", 0},
         .lastWindowHeight {"video.lastWindowHeight", 0},
         .uiScale {"video.uiScale", 100},
+#if defined(__SWITCH__)
+        // Switch-only clock tiers (see dusk/perf.hpp); harmless no-ops elsewhere.
+        .cpuBoost {"video.switchCpuBoost", false},
+        .cpuBoostPlus {"video.switchBoostPlus", false},
+#endif
     },
 
     .audio = {
@@ -62,7 +67,12 @@ UserSettings g_userSettings = {
         .instantText {"game.instantText", false},
         .holdToMash {"game.holdToMash", false},
         .sunsSong {"game.sunsSong", false},
+#if defined(__SWITCH__)
+        // Switch has no other save mechanism in reach during play; default autosave on.
+        .autoSave {"game.autoSave", true},
+#else
         .autoSave {"game.autoSave", false},
+#endif
         .enhancedMapMenus {"game.enhancedMapMenus", false},
         .aimingReticle {"game.aimingReticle", false},
         .noHitStun {"game.noHitStun", false},
@@ -84,6 +94,7 @@ UserSettings g_userSettings = {
         .bloomMultiplier {"game.bloomMultiplier", 1.0f},
         .depthOfFieldMode{"game.depthOfFieldMode", DepthOfFieldMode::Dusk},
         .disableWaterRefraction {"game.disableWaterRefraction", false},
+        .disableShadows {"game.disableShadows", false},
         .enableTextureReplacements {"game.enableTextureReplacements", true},
         .enableFrameInterpolation {"game.enableFrameInterpolation", FrameInterpMode::Off},
         .internalResolutionScale {"game.internalResolutionScale", 0},
@@ -99,8 +110,16 @@ UserSettings g_userSettings = {
         .midnasLamentNonStop {"game.midnasLamentNonStop", false},
 
         // Input
+#if defined(__SWITCH__)
+        // The Switch has a built-in gyro; default-on so it's discoverable. Gyro aim only
+        // engages in look/aim modes (look, hawk, bow), not the free camera, so it won't
+        // cause drift during normal play. (Ported from HayatoG/dusklight #3.)
+        .enableGyroAim {"game.enableGyroAim", true},
+        .enableGyroRollgoal {"game.enableGyroRollgoal", true},
+#else
         .enableGyroAim {"game.enableGyroAim", false},
         .enableGyroRollgoal {"game.enableGyroRollgoal", false},
+#endif
         .gyroSensitivityX {"game.gyroSensitivityX", 1.0f},
         .gyroSensitivityY {"game.gyroSensitivityY", 1.0f},
         .gyroSensitivityRollgoal {"game.gyroSensitivityRollgoal", 1.0f},
@@ -315,6 +334,11 @@ void registerSettings() {
     Register(g_userSettings.video.lastWindowHeight);
     Register(g_userSettings.video.uiScale,
         [](const int&, const int&) { dusk::ui::apply_scale(); });
+#if defined(__SWITCH__)
+    Register(g_userSettings.video.cpuBoost);
+    Register(g_userSettings.video.cpuBoostPlus);
+#endif
+    Register(g_userSettings.game.disableShadows);
 
     // Audio
     Register(g_userSettings.audio.outputMode);

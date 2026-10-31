@@ -985,6 +985,23 @@ void dMenu_save_c::saveQuestion4() {
 }
 
 void dMenu_save_c::saveGuide() {
+#if defined(__SWITCH__)
+    // B FIX (post-save gray/black-screen hang on the gameover/BLACK_EVENT event-save —
+    // e.g. the auto-save after a mission). The guide message (msg 0x4E4, opened via
+    // backSaveQuestion2() with field_0x58=true) sits at STATUS_MOVE_e(3)/STATUS_MOVE_SELECT_e(4)
+    // waiting for a pad trigger to dismiss, but in the gameover/pause context the input never
+    // reaches the explain's move_proc (getTrigA(PAD_1) stays 0) -> getStatus() never reaches 0
+    // -> this proc loops forever -> infinite gray screen. Force the dismiss (field_0x58==true,
+    // so onForceSelect satisfies move_proc's close condition) -> explain closes -> the save flow
+    // completes and the gameover resumes. Mirrors the existing onForceSelect pattern.
+    // (Ported from HayatoG/dusklight; the save itself already succeeded at this point.)
+    if (mpScrnExplain != NULL) {
+        u8 st = mpScrnExplain->getStatus();
+        if (st == 3 || st == 4) {
+            mpScrnExplain->onForceSelect();
+        }
+    }
+#endif
     if (mpScrnExplain->getStatus() == 0) {
         mEndStatus = 1;
         mSaveStatus = 3;

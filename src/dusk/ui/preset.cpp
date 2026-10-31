@@ -59,6 +59,14 @@ void applyPresetDusk() {
 
 }  // namespace
 
+void apply_preset_dusk_silently() {
+    // Switch: only the Dusklight preset is supported (HayatoG/dusklight). Apply it without the
+    // chooser and persist wasPresetChosen so the welcome window never opens on subsequent boots.
+    applyPresetDusk();
+    getSettings().backend.wasPresetChosen.setValue(true);
+    config::save();
+}
+
 PresetWindow::PresetWindow() : WindowSmall("modal") {
     auto* header = append(mDialog, "modal-header");
 

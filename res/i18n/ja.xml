@@ -1451,4 +1451,10 @@
   <entry key="NO_HIT_STUN_HELP">攻撃後ののけぞりフレームを無効化します。</entry>
   <entry key="INFINITE_EPONA_STAMINA">エポナのスタミナ無限</entry>
   <entry key="INFINITE_EPONA_STAMINA_HELP">エポナのスタミナが消耗しなくなります。</entry>
+  <entry key="SWITCH_CPU_BOOST">CPU ブースト（Switch）</entry>
+  <entry key="SWITCH_CPU_BOOST_HELP">Tegra X1 の CPU ブーストクロック（1785 MHz）と GPU 768 MHz（ドック時の最大値・オーバークロックではありません）を要求し、フレームレートを回復します。他のプラットフォームでは効果がありません。</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS">Boost+（Switch・OC）</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS_HELP">より強力な段階：CPU ブーストに加え GPU 921 MHz・メモリ 1600 MHz を要求します。オーバークロックのため sys-clk-OC が必要です。標準ファームウェアでは GPU は 768 MHz に制限されます。CPU ブーストを上書きします。</entry>
+  <entry key="DISABLE_SHADOWS">影を無効化</entry>
+  <entry key="DISABLE_SHADOWS_HELP">シャドウパス全体をスキップし、影を犠牲にして大幅なパフォーマンス向上を得ます。</entry>
 </localization>

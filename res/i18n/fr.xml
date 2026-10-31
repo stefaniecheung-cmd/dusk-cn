@@ -1451,4 +1451,10 @@
   <entry key="NO_HIT_STUN_HELP">D&#233;sactive les images d&#39;&#233;tourdissement apr&#232;s les attaques.</entry>
   <entry key="INFINITE_EPONA_STAMINA">Endurance d&#39;Epona infinie</entry>
   <entry key="INFINITE_EPONA_STAMINA_HELP">L&#39;endurance d&#39;Epona ne s&#39;&#233;puise plus.</entry>
+  <entry key="SWITCH_CPU_BOOST">Boost CPU (Switch)</entry>
+  <entry key="SWITCH_CPU_BOOST_HELP">Demande l&#39;horloge CPU boost&#233;e du Tegra X1 (1785 MHz) et GPU 768 MHz (maxima en mode socle, pas un overclocking) pour regagner des images/s. Sans effet sur les autres plateformes.</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS">Boost+ (Switch, overclock)</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS_HELP">Palier sup&#233;rieur&#160;: GPU 921 MHz + m&#233;moire 1600 MHz en plus du boost CPU. Un overclocking qui n&#233;cessite sys-clk-OC&#160;; sur un firmware officiel le GPU est brid&#233; &#224; 768 MHz. Remplace le boost CPU.</entry>
+  <entry key="DISABLE_SHADOWS">D&#233;sactiver les ombres</entry>
+  <entry key="DISABLE_SHADOWS_HELP">Ignore toute la passe d&#39;ombres pour un gain de performances important, au prix des ombres.</entry>
 </localization>

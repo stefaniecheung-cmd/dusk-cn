@@ -1451,4 +1451,10 @@
   <entry key="NO_HIT_STUN_HELP">关闭攻击后的受击硬直帧。</entry>
   <entry key="INFINITE_EPONA_STAMINA">艾波娜无限体力</entry>
   <entry key="INFINITE_EPONA_STAMINA_HELP">艾波娜的体力不会消耗。</entry>
+  <entry key="SWITCH_CPU_BOOST">CPU 提速（Switch）</entry>
+  <entry key="SWITCH_CPU_BOOST_HELP">请求 Tegra X1 的 CPU 提速频率（1785 MHz）与 GPU 768 MHz（底座最高频率，非超频），以挽回帧率。对其他平台无效。</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS">Boost+（Switch 超频档）</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS_HELP">更强档位：在 CPU 提速基础上追加 GPU 921 MHz 与内存 1600 MHz。属于超频，需要 sys-clk-OC 模块；原厂系统下 GPU 会被限制在 768 MHz。会覆盖 CPU 提速。</entry>
+  <entry key="DISABLE_SHADOWS">关闭阴影</entry>
+  <entry key="DISABLE_SHADOWS_HELP">跳过整条阴影渲染管线，大幅提升性能，代价是没有阴影。</entry>
 </localization>

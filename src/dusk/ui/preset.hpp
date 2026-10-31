@@ -7,6 +7,10 @@
 
 namespace dusk::ui {
 
+// Apply the Dusklight preset without showing the chooser and mark wasPresetChosen=true.
+// Used on Switch where only this preset is offered (HayatoG/dusklight).
+void apply_preset_dusk_silently();
+
 class PresetWindow : public WindowSmall {
 public:
     PresetWindow();

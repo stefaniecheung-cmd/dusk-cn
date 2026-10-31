@@ -5,6 +5,9 @@
  */
 
 #include "m_Do/m_Do_main.h"
+#if defined(__SWITCH__)
+extern "C" void dusk_switch_log(const char*);
+#endif
 #include "DynamicLink.h"
 #include "JSystem/JAudio2/JASAudioThread.h"
 #include "JSystem/JAudio2/JAUSoundTable.h"
@@ -714,7 +717,21 @@ int game_main(int argc, char* argv[]) {
 
         config.desiredBackend = ResolveDesiredBackend(parsed_arg_options);
         config.logCallback = borealis::log::aurora_callback();
+#if defined(__SWITCH__)
+        // PERF: on Switch there are no CLI args, so startupLogLevel stays at its
+        // default LOG_DEBUG(0) -> NOTHING is filtered and the engine's per-frame
+        // [DEBUG|dusk] spam (fapGm_Execute, fpc*, Loading Resource...) each does a
+        // double fflush (stdout + SD file) in aurora_log_callback -> stutters/spikes.
+        // The upstream filter at aurora/lib/logging.hpp (g_config.logLevel > level
+        // -> return) drops them for free when the level is raised. The per-frame DEBUG
+        // spam is the ONLY heavy log volume (the stutter source, HW-confirmed); every
+        // level above DEBUG drops it, so LOG_WARNING costs the same as FATAL but keeps
+        // the genuinely-useful WARNING/ERROR/FATAL lines (no spam, not blind).
+        // (Ported from HayatoG/dusklight.)
+        config.logLevel = LOG_WARNING;
+#else
         config.logLevel = borealis::log::to_aurora_level(startupLogLevel);
+#endif
         if (dusk::tphd_active()) {
             config.mem1Size = 512 * 1024 * 1024;
         } else {
@@ -784,6 +801,52 @@ int game_main(int argc, char* argv[]) {
     // This is only a metadata check; full hash verification is handled by the prelaunch UI.
     bool forcePreLaunchUI = false;
     bool saveConfigBeforePrelaunch = false;
+
+#if defined(__SWITCH__)
+    // #6: accept any GameCube disc image placed in the data folder, regardless of file name or
+    // extension. If no valid disc is configured, scan the data dir and adopt the first file that
+    // validates as a supported TP disc. iso::inspect uses nod, so GCM/ISO/RVZ/CISO/GCZ/WBFS/WIA/etc.
+    // all work, and the game-id check rejects non-disc files (config.json, *.db, saves). See
+    // HayatoG/dusklight#6.
+    if (dusk::getSettings().backend.isoPath.getValue().empty()) {
+        std::error_code scanEc;
+        bool found = false;
+        if (std::filesystem::is_directory(dusk::ConfigPath, scanEc)) {
+            for (const auto& entry : std::filesystem::directory_iterator(dusk::ConfigPath, scanEc)) {
+                if (scanEc) {
+                    break;
+                }
+                if (!entry.is_regular_file()) {
+                    continue;
+                }
+                // Skip files too small to be a disc image (config.json, *.controller, cache .db,
+                // saves) so only real images are inspected — iso::inspect enforces the same floor.
+                std::error_code sizeEc;
+                const auto sz = entry.file_size(sizeEc);
+                if (sizeEc || sz < (16ull * 1024 * 1024)) {
+                    continue;
+                }
+                const auto candidateU8 = entry.path().u8string();
+                const std::string candidate(reinterpret_cast<const char*>(candidateU8.c_str()),
+                                            candidateU8.size());
+                dusk::iso::DiscInfo scanInfo{};
+                if (dusk::iso::inspect(candidate.c_str(), scanInfo) ==
+                    dusk::iso::ValidationError::Success) {
+                    DuskLog.warn("Auto-detected disc image in data folder: {}", candidate);
+                    dusk::getSettings().backend.isoPath.setValue(candidate);
+                    dusk::getSettings().backend.isoVerification.setValue(
+                        dusk::DiscVerificationState::Unknown);
+                    saveConfigBeforePrelaunch = true;
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            DuskLog.warn("No disc image found in {}", dusk::ConfigPath.string());
+        }
+    }
+#endif
 
     borealis::io::PathAccess dvdPathAccess;
     const auto resolveDvdLocation = [&dvdPathAccess](const std::string& location) {
@@ -883,7 +946,34 @@ int game_main(int argc, char* argv[]) {
             }
 
             // pre game launch ui main loop
-            if (!launchUILoop()) {
+#if defined(__SWITCH__)
+            ::dusk_switch_log("[dusk] main: entering launchUILoop\n");
+#endif
+            const bool launchUIResult = launchUILoop();
+#if defined(__SWITCH__)
+            // The Prelaunch document remains in dusk::ui::sDocumentStack even
+            // after it auto-flips IsGameLaunched. With any_document_visible()
+            // still returning true, dusk::ui::input::sync_input_block() calls
+            // PADBlockInput(true) on every frame, zeroing out PADRead() for
+            // the GameCube pad and freezing the in-game file-select menu
+            // (user reported: animation runs but no button works). Close any
+            // launcher documents now that the game is taking over input.
+            // (Ported from HayatoG/dusklight.)
+            if (launchUIResult) {
+                ::dusk_switch_log("[dusk] main: closing launcher documents (PAD unblock)\n");
+                for (auto& doc : dusk::ui::document_stack()) {
+                    // Close only the VISIBLE launcher documents (Prelaunch) — those are what keep
+                    // any_document_visible() true and block the GameCube pad. Skip hidden documents
+                    // like the MenuBar (pushed show=false at startup): it must survive into gameplay
+                    // so the (-) menu has something to toggle (top_document() only returns active
+                    // docs; closing the MenuBar here was why top_document()==null in-game).
+                    if (doc && doc->visible()) {
+                        doc->hide(true);
+                    }
+                }
+            }
+#endif
+            if (!launchUIResult) {
                 borealis::shutdown();
                 borealis::sentry::shutdown();
                 borealis::log::shutdown();
@@ -979,7 +1069,15 @@ int game_main(int argc, char* argv[]) {
 #endif
 
     if (!dusk::getSettings().backend.wasPresetChosen) {
+#if defined(__SWITCH__)
+        // Switch: only the Dusklight preset is supported. Apply it silently
+        // and persist `wasPresetChosen=true` so the chooser never opens here.
+        // (Ported from HayatoG/dusklight.)
+        dusk::ui::apply_preset_dusk_silently();
+        ::dusk_switch_log("[dusk] main: auto-applied Dusklight preset (Switch)\n");
+#else
         dusk::ui::push_document(std::make_unique<dusk::ui::PresetWindow>());
+#endif
     }
 
     OSReport("Starting main01 (Game Loop)...\n");

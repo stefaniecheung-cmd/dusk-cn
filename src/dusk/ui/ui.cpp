@@ -391,6 +391,10 @@ Document& push_document(std::unique_ptr<Document> doc, bool show, bool passive) 
     return ret;
 }
 
+std::vector<std::unique_ptr<Document>>& document_stack() noexcept {
+    return sDocumentStack;
+}
+
 Document& detail::pop_to_or_push_document(bool (*matches)(Document&),
     const std::function<std::unique_ptr<Document>()>& create,
     const std::function<void(Document&)>& configure) {

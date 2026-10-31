@@ -23,6 +23,7 @@
 #include "dusk/imgui/ImGuiEngine.hpp"
 #include "dusk/language.hpp"
 #include "dusk/livesplit.h"
+#include "dusk/perf.hpp"
 #include "dusk/presentation.hpp"
 #include "dusk/speedrun.h"
 
@@ -946,6 +947,37 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             "[UI_SCALE]",
             "[SCALES_THE_DUSKLIGHT_INTERFACE_RELATIVE_TO_THE_DISPLAY_S_DPI_SCALE_HAS_NO_EFF]",
             50, 200, 25, {}, {}, "%");
+#if defined(__SWITCH__)
+        // Switch-only clock tiers (see dusk/perf.hpp). Mutually exclusive: enabling one
+        // drops the other so the two toggles act like one setting (turning a toggle off
+        // always lowers the clocks instead of the other tier silently keeping them pinned).
+        config_bool_select(leftPane, rightPane, getSettings().video.cpuBoost,
+            {
+                .key = "[SWITCH_CPU_BOOST]",
+                .helpText = "[SWITCH_CPU_BOOST_HELP]",
+                .onChange =
+                    [](bool value) {
+                        if (value) {
+                            getSettings().video.cpuBoostPlus.setValue(false);
+                        }
+                        dusk::perf::set_boost(value, getSettings().video.cpuBoostPlus.getValue());
+                        config::save();
+                    },
+            });
+        config_bool_select(leftPane, rightPane, getSettings().video.cpuBoostPlus,
+            {
+                .key = "[SWITCH_CPU_BOOST_PLUS]",
+                .helpText = "[SWITCH_CPU_BOOST_PLUS_HELP]",
+                .onChange =
+                    [](bool value) {
+                        if (value) {
+                            getSettings().video.cpuBoost.setValue(false);
+                        }
+                        dusk::perf::set_boost(getSettings().video.cpuBoost.getValue(), value);
+                        config::save();
+                    },
+            });
+#endif
 
         leftPane.add_section("[RESOLUTION]");
         graphics_tuner_control(*this, leftPane, rightPane,
@@ -959,6 +991,11 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 .option = GraphicsOption::ShadowResolution,
                 .title = "[SHADOW_RESOLUTION]",
                 .helpText = kShadowResolutionHelpText,
+            });
+        config_bool_select(leftPane, rightPane, getSettings().game.disableShadows,
+            {
+                .key = "[DISABLE_SHADOWS]",
+                .helpText = "[DISABLE_SHADOWS_HELP]",
             });
         graphics_tuner_control(*this, leftPane, rightPane,
             GraphicsTunerProps{

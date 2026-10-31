@@ -6,6 +6,7 @@
 #include <borealis/io.hpp>
 #include <borealis/log.hpp>
 
+#include <cstdio>
 #include <string>
 #include <system_error>
 
@@ -128,6 +129,66 @@ borealis::data::Manager& manager() {
     return instance;
 }
 
+#if defined(__SWITCH__)
+namespace {
+// First-boot self-provision (HayatoG/dusklight#5, Option B): the NRO bundles a default config and
+// the pre-warmed shader caches under romfs:/seed/. Copy any that are missing into the data folder
+// so a clean install needs only the .nro — the user then drops their disc image into the folder
+// (#6). Never overwrites an existing file, so the user's own (warmer) cache and edited config are
+// preserved. Manual byte copy: std::filesystem::copy_file returns ENOSYS on libnx (no
+// copy_file_range / sendfile fast path and the generic fallback isn't wired), so we stream the
+// bytes ourselves; works across devoptab mounts (romfs -> sdmc).
+bool copy_file_raw(const std::filesystem::path& src, const std::filesystem::path& dest) {
+    FILE* in = std::fopen(src.string().c_str(), "rb");
+    if (in == nullptr) {
+        return false;
+    }
+    FILE* out = std::fopen(dest.string().c_str(), "wb");
+    if (out == nullptr) {
+        std::fclose(in);
+        return false;
+    }
+    char buffer[4096];
+    size_t n;
+    bool ok = true;
+    while ((n = std::fread(buffer, 1, sizeof buffer, in)) > 0) {
+        if (std::fwrite(buffer, 1, n, out) != n) {
+            ok = false;
+            break;
+        }
+    }
+    ok = ok && std::ferror(in) == 0;
+    std::fclose(in);
+    if (std::fclose(out) != 0) {
+        ok = false;
+    }
+    return ok;
+}
+
+// Copy every file in romfs:/seed/ that is missing from the data folder. Errors on individual
+// files are logged and skipped (a missing seed file only means a colder first launch).
+void seed_data_from_romfs(const std::filesystem::path& dataPath) {
+    constexpr const char* kSeedDir = "romfs:/seed/";
+    std::error_code ec;
+    if (!std::filesystem::is_directory(kSeedDir, ec)) {
+        return;
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(kSeedDir, ec)) {
+        if (!entry.is_regular_file(ec)) {
+            continue;
+        }
+        const auto dest = dataPath / entry.path().filename();
+        if (std::filesystem::exists(dest, ec)) {
+            continue;  // never overwrite user data / warmer caches
+        }
+        if (!copy_file_raw(entry.path(), dest)) {
+            Log.warn("Failed to seed {} from romfs", dest.string());
+        }
+    }
+}
+}  // namespace
+#endif
+
 Paths initialize_data(const std::filesystem::path& userDirectoryOverride) {
     const auto status = manager().initialize(userDirectoryOverride);
     if (!status && status.code != borealis::data::ErrorCode::MigrationIncomplete) {
@@ -137,6 +198,9 @@ Paths initialize_data(const std::filesystem::path& userDirectoryOverride) {
         Log.warn("{} Migration will be retried on the next launch.",
             ui::i18n::tr(status_message(status)));
     }
+#if defined(__SWITCH__)
+    seed_data_from_romfs(manager().paths().userPath);
+#endif
     return manager().paths();
 }
 

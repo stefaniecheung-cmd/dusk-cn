@@ -1104,9 +1104,17 @@ void Prelaunch::update() {
     const bool discRestartPending =
         activeDiscLoaded && state.configuredDiscPath != state.activeDiscPath;
     mDocument->SetClass("disc-ready", IsGameLaunched);
+#ifndef __SWITCH__
     if (canLaunchConfiguredDisc) {
         IsGameLaunched = true;
     }
+#else
+    // On Switch the auto-launch fires every frame because our saved config has
+    // a valid isoPath, and that turned the launcher invisible to the user.
+    // Keep the prelaunch UI up so the user can navigate it; the Play button
+    // still flips IsGameLaunched when explicitly pressed.
+    // (Ported from HayatoG/dusklight.)
+#endif
 
     if (!mEntranceAnimationStarted && mDocument != nullptr) {
         mDocument->SetClass("animate-in", true);

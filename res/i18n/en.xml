@@ -1451,4 +1451,10 @@
   <entry key="NO_HIT_STUN_HELP">Disables hit stun frames after attacks.</entry>
   <entry key="INFINITE_EPONA_STAMINA">Infinite Epona Stamina</entry>
   <entry key="INFINITE_EPONA_STAMINA_HELP">Prevents Epona&#39;s stamina from depleting.</entry>
+  <entry key="SWITCH_CPU_BOOST">CPU Boost (Switch)</entry>
+  <entry key="SWITCH_CPU_BOOST_HELP">Requests the Tegra X1 CPU boost clock (1785 MHz) and GPU 768 MHz (docked maxima, not an overclock) to win back framerate. No effect on other platforms.</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS">Boost+ (Switch, overclock)</entry>
+  <entry key="SWITCH_CPU_BOOST_PLUS_HELP">Stronger tier: GPU 921 MHz + memory 1600 MHz on top of the CPU boost. An overclock that needs the sys-clk-OC module; on stock firmware the GPU is clamped to 768 MHz. Overrides CPU Boost.</entry>
+  <entry key="DISABLE_SHADOWS">Disable Shadows</entry>
+  <entry key="DISABLE_SHADOWS_HELP">Skips the entire shadow pass pipeline for a large performance gain at the cost of shadows.</entry>
 </localization>

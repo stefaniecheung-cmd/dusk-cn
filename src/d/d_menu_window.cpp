@@ -30,6 +30,17 @@
 #include "dusk/interp/frame_interpolation.h"
 #endif
 
+// Switch: log gate inputs of the save-close flow (throttled / on-change). The save-close gate
+// (collect_save_close_proc) only closes the menu when the fader reaches status 0; if the fader
+// never settles on Switch the menu hangs black on "continue". PC builds compile this out.
+#if defined(__SWITCH__)
+#include <cstdio>
+extern "C" void dusk_switch_log(const char*);
+#define MW_LOGF(...) do { char _mwb[160]; snprintf(_mwb, sizeof(_mwb), __VA_ARGS__); dusk_switch_log(_mwb); } while (0)
+#else
+#define MW_LOGF(...) ((void)0)
+#endif
+
 class dDlst_MENU_CAPTURE_c : public dDlst_base_c {
 public:
     virtual void draw() {
@@ -868,12 +879,35 @@ void dMw_c::collect_save_move_proc() {
 }
 
 void dMw_c::collect_save_close_proc() {
+    // Switch diagnostics: log the gate inputs on change so we can see WHY "continue" stays
+    // black: is the fader stuck != 0, or does it reach NO_MENU and the world is black?
+    {
+        static int s_lastFader = -1, s_lastSave = -1;
+        int f = mDoGph_gInf_c::getFader()->getStatus();
+        int s = mpMenuSave->getSaveStatus();
+        if (f != s_lastFader || s != s_lastSave) {
+            MW_LOGF("[mw] save_close: faderStatus=%d saveStatus=%d\n", f, s);
+            s_lastFader = f; s_lastSave = s;
+        }
+    }
     if (mDoGph_gInf_c::getFader()->getStatus() == 0) {
         mpMenuSave->_move();
 
         if (mpMenuSave->getSaveStatus() == 3) {
             mMenuProc = COLLECT_MOVE;
         } else {
+            MW_LOGF("[mw] save_close -> NO_MENU (menu closed, saveStatus=%d)\n", mpMenuSave->getSaveStatus());
+#if defined(__SWITCH__)
+            // B FIX (post-save "continue playing" black screen): the in-game save fades OUT to
+            // black and the JUTFader ends at None (== alpha 0xFF, an opaque full-screen black box
+            // drawn every frame). The continue path (saveStatus==4) jumps straight to NO_MENU
+            // WITHOUT a fade-in, so the fader stays at None forever and the resumed world is
+            // hidden behind black. (saveStatus==3 goes via COLLECT_MOVE which fades; "No"/quit
+            // does a hard reset.) Fade the world back in here so "continue" actually returns to
+            // gameplay. startFadeIn no-ops if already fading.
+            MW_LOGF("[mw] save_close: continue path -> dMw_fade_in() (clear black)\n");
+            dMw_fade_in();
+#endif
             mMenuProc = NO_MENU;
         }
     }
