@@ -54,9 +54,14 @@ jobs:
           key: dawn-switch-switch-${{ vars.DAWN_SWITCH_REV || 'pinned' }}
       - name: Clone dawn-switch
         run: |
+          # dawn's third_party deps (abseil, spirv-tools, vulkan-headers, protobuf, ...)
+          # are git submodules — a plain shallow clone leaves them empty and Configure
+          # fails on missing CMakeLists.txt. Fetch them shallowly too.
+          git config --global --add safe.directory '*'
           if [ ! -d platforms/switch/reference/dawn-switch/.git ]; then
             mkdir -p platforms/switch/reference
             git clone --depth 1 --branch switch \
+              --recurse-submodules --shallow-submodules --jobs 4 \
               https://github.com/danfromtico/dawn-switch.git \
               platforms/switch/reference/dawn-switch
           fi
