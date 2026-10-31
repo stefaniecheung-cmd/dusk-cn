@@ -266,8 +266,8 @@ void perform_import(
                   importedCount == 1 ? fmt::format("{} [SAVE_WAS_IMPORTED]", importedLabel) :
                                        fmt::format("{} [SAVES_WERE_IMPORTED]", importedCount);
     } else if (importedCount != 0) {
-        message = fmt::format("{} save{} [IMPORTED_BEFORE_THE_OPERATION_STOPPED]: {}",
-            importedCount, importedCount == 1 ? " was" : "s were", result.message);
+        message = fmt::format("{} [IMPORTED_BEFORE_THE_OPERATION_STOPPED]: {}",
+            importedCount, result.message);
     } else {
         message = result.message;
     }

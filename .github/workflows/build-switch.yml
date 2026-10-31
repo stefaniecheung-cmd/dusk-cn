@@ -2,15 +2,17 @@
 # our fork tracks TwilitRealm/dusklight and this file is fork-local, so upstream CI changes
 # never conflict with it.
 #
-# STATUS (bring-up): the full NVK/Vulkan NRO build needs two artifacts that are NOT in this
-# repository (they were HayatoG's local mounts):
-#   1. dawn-switch — Dawn fork with the Switch Vulkan path (VK_NN_vi_surface, loaderless ICD).
-#      Provide via secret/release artifact and set DUSK_SWITCH_DAWN_DIR, or mount like
-#      platforms/switch/build-docker.sh does (platforms/switch/reference/dawn-switch).
-#   2. nvk-switch — Mesa NVK driver archive for the Switch (libvulkan.a). Provide via
-#      DAWN_SWITCH_NVK_ROOT (aurora-switch defaults to /opt/nvk-switch).
-# Until both are published, this workflow validates configure-time wiring only and is allowed
-# to fail (continue-on-error) without blocking the repo's CI status.
+# STATUS (bring-up): the two external Switch artifacts are now sourced as follows:
+#   1. dawn-switch — PUBLIC at danfromtico/dawn-switch (branch `switch`; HayatoG's fork of it is
+#      private). Shallow-cloned into platforms/switch/reference/dawn-switch (gitignored) below,
+#      matching the layout build-docker.sh and AURORA_DAWN_SOURCE_DIR expect.
+#   2. nvk-switch — Mesa NVK package (libvulkan.a + headers). No public release of the packaged
+#      artifact exists; it is produced by the switch-nvk repo (github.com/HayatoG/switch-nvk,
+#      public) via a 60-90 min Mesa cross-build (Dockerfile + package-nvk.sh). Until a packaged
+#      artifact is published or we add a dedicated CI job for it, provide it via the
+#      DAWN_SWITCH_NVK_ROOT path (aurora-switch defaults to /opt/nvk-switch).
+# configure-time wiring is validated either way; the job is continue-on-error until the NVK
+# package is wired so it never blocks the repo's CI status.
 
 name: Build Switch (NRO)
 
@@ -43,6 +45,23 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      # dawn-switch is public (danfromtico/dawn-switch, branch `switch`). Shallow clone (~200 MB)
+      # into the layout build-docker.sh / AURORA_DAWN_SOURCE_DIR expect. Cached because Dawn is big.
+      - name: Fetch dawn-switch (public fork)
+        uses: actions/cache@v4
+        with:
+          path: platforms/switch/reference/dawn-switch
+          key: dawn-switch-switch-${{ vars.DAWN_SWITCH_REV || 'pinned' }}
+      - name: Clone dawn-switch
+        run: |
+          if [ ! -d platforms/switch/reference/dawn-switch/.git ]; then
+            mkdir -p platforms/switch/reference
+            git clone --depth 1 --branch switch \
+              https://github.com/danfromtico/dawn-switch.git \
+              platforms/switch/reference/dawn-switch
+          fi
+          git -C platforms/switch/reference/dawn-switch log --oneline -1
+
       - name: Configure (Switch toolchain)
         run: |
           cmake -S . -B build-switch -G Ninja \
@@ -53,14 +72,20 @@ jobs:
             -DDUSK_ENABLE_UPDATE_CHECKER=OFF \
             -DDUSK_ENABLE_DISCORD=OFF \
             -DAURORA_PLATFORM_SWITCH=ON \
+            -DAURORA_ENABLE_RMLUI=ON \
             -DAURORA_ENABLE_IMGUI=OFF \
+            -DAURORA_DAWN_PROVIDER=source \
+            -DAURORA_DAWN_SOURCE_DIR=$PWD/platforms/switch/reference/dawn-switch \
+            -DDAWN_FETCH_DEPENDENCIES=ON \
             -DAURORA_BACKEND_DEKO3D=OFF \
             -DAURORA_BACKEND_GLES=OFF \
             -DAURORA_BACKEND_DAWN_GL=OFF \
             -DDAWN_PLATFORM_SWITCH=ON \
             -DDAWN_ENABLE_VULKAN=ON \
             -DDAWN_ENABLE_OPENGLES=OFF \
-            -DDAWN_ENABLE_DESKTOP_GL=OFF
+            -DDAWN_ENABLE_DESKTOP_GL=OFF \
+            -DTINT_BUILD_GLSL_WRITER=OFF \
+            -DTINT_BUILD_SPV_WRITER=ON
 
       - name: Build
         run: cmake --build build-switch -j"$(nproc)"

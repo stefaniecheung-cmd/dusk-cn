@@ -1364,7 +1364,7 @@
   <entry key="EXPORT_SAVE">Export Save...</entry>
   <entry key="IF_A_GAME_SAVE_EXISTS_A_BACKUP_WILL_BE_MADE_FIRST">If a game save exists, a backup will be made first.</entry>
   <entry key="IMPORT">Import</entry>
-  <entry key="IMPORTED_BEFORE_THE_OPERATION_STOPPED">imported before the operation stopped</entry>
+  <entry key="IMPORTED_BEFORE_THE_OPERATION_STOPPED">件のセーブが操作停止前にインポートされました</entry>
   <entry key="IMPORT_A_SAVE_OR_START_THIS_MODE_TO_CREATE_ONE">Import a save or start this mode to create one.</entry>
   <entry key="IMPORT_EXPORT_BACK_UP_AND_REMOVE_SAVES_FOR_THE_CONFIGURED_DISC">Import, export, back up, and remove saves for the configured disc.</entry>
   <entry key="IMPORT_FAILED">Import Failed</entry>
