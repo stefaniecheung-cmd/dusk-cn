@@ -76,6 +76,7 @@ UserSettings g_userSettings = {
         .enhancedMapMenus {"game.enhancedMapMenus", false},
         .aimingReticle {"game.aimingReticle", false},
         .noHitStun {"game.noHitStun", false},
+        .disableShadows {"game.disableShadows", false},
 
         // Preferences
         .enableMirrorMode {"game.enableMirrorMode", false},
@@ -94,8 +95,7 @@ UserSettings g_userSettings = {
         .bloomMultiplier {"game.bloomMultiplier", 1.0f},
         .depthOfFieldMode{"game.depthOfFieldMode", DepthOfFieldMode::Dusk},
         .disableWaterRefraction {"game.disableWaterRefraction", false},
-        .disableShadows {"game.disableShadows", false},
-        .enableTextureReplacements {"game.enableTextureReplacements", true},
+                .enableTextureReplacements {"game.enableTextureReplacements", true},
         .enableFrameInterpolation {"game.enableFrameInterpolation", FrameInterpMode::Off},
         .internalResolutionScale {"game.internalResolutionScale", 0},
         .shadowResolutionMultiplier {"game.shadowResolutionMultiplier", 1},
