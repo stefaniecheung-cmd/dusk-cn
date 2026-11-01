@@ -173,6 +173,30 @@ jobs:
           done
           git -C "$DS" log --oneline -1
 
+      # Dawn vendors abseil, which assumes a POSIX host in two places. devkitA64's newlib
+      # breaks both:
+      #   * absl/base/internal/sysinfo.cc - GetTID() falls back to
+      #     static_cast<pid_t>(pthread_self()), but newlib's pthread_t is an opaque
+      #     `struct __pthread_t *` (sys/_pthreadtypes.h), so the static_cast is invalid.
+      #     Cast the pointer value instead: it is still unique per thread, which is all
+      #     GetCachedTID() needs.
+      #   * absl/base/internal/thread_identity.cc - SetCurrentThreadIdentity() masks all
+      #     signals around pthread_setspecific() via sigfillset/pthread_sigmask/SIG_SETMASK.
+      #     Horizon has no POSIX signals, so take the same branch abseil already uses for
+      #     Emscripten/WASI/MinGW (plain pthread_setspecific, no signal handling).
+      - name: Patch abseil for Horizon (newlib)
+        run: |
+          AB=platforms/switch/reference/dawn-switch/third_party/abseil-cpp
+          test -f "$AB/absl/base/internal/sysinfo.cc" || { echo "FATAL: abseil not cloned"; exit 1; }
+          sed -i 's/return static_cast<pid_t>(pthread_self());/return static_cast<pid_t>(reinterpret_cast<unsigned long>(pthread_self()));/' \
+            "$AB/absl/base/internal/sysinfo.cc"
+          if ! grep -q '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"; then
+            sed -i 's/defined(__hexagon__)/defined(__hexagon__) || defined(__SWITCH__)/' \
+              "$AB/absl/base/internal/thread_identity.cc"
+          fi
+          grep -n 'reinterpret_cast<unsigned long>' "$AB/absl/base/internal/sysinfo.cc"
+          grep -n '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"
+
       - name: Configure (Switch toolchain)
         run: |
           cmake -S . -B build-switch -G Ninja \
