@@ -202,7 +202,9 @@ UserSettings g_userSettings = {
     .backend = {
         .isoPath {"backend.isoPath", ""},
         .isoVerification {"backend.isoVerification", DiscVerificationState::Unknown},
-        .uiLanguage {"backend.uiLanguage", "en"},
+        // This fork ships a fully translated launcher: default to Simplified Chinese so the
+        // first run is in Chinese. Users can switch back from Interface -> UI Language.
+        .uiLanguage {"backend.uiLanguage", "zh-cn"},
 #if DUSK_TPHD
         .hdContentPath {"backend.hdContentPath", ""},
         .enableTphd {"backend.enableTphd", true},
