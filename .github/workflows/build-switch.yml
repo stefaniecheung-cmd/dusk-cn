@@ -205,6 +205,36 @@ jobs:
           grep -n 'reinterpret_cast<unsigned long>' "$AB/absl/base/internal/sysinfo.cc"
           grep -n '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"
           grep -n '__SWITCH__' "$AB/absl/debugging/internal/elf_mem_image.h"
+          #   * absl/time/internal/cctz/src/time_zone_libc.cc - the generic fallback declares
+          #     `template<class T> auto tm_gmtoff(const T&) -> decltype(tm.tm_gmtoff)` (and the
+          #     __tm_gmtoff spelling). newlib's struct tm has neither field, so deduction fails:
+          #     "no matching function for call to 'tm_gmtoff(std::tm{})'". Add a non-template
+          #     exact-match overload, which wins overload resolution and keeps the templates
+          #     uninstantiated. Done in Python because the anchor is a two-line template.
+          python3 - "$AB/absl/time/internal/cctz/src/time_zone_libc.cc" <<'PYEOF'
+import io, sys
+path = sys.argv[1]
+src = io.open(path, encoding="utf-8").read()
+if "__SWITCH__" in src:
+    print("cctz: already patched")
+    sys.exit(0)
+anchor = "auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {"
+if anchor not in src:
+    print("WARN: cctz anchor not found, leaving file untouched")
+    sys.exit(0)
+shim = (
+    "#if defined(__SWITCH__)\n"
+    "// newlib's struct tm carries no tm_gmtoff/__tm_gmtoff extension fields, so the\n"
+    "// generic fallback templates below cannot be instantiated for it at all. A\n"
+    "// non-template exact-match overload wins overload resolution and leaves them\n"
+    "// uninstantiated. Horizon has no zone database, so UTC offset 0 / no zone name.\n"
+    "inline long tm_gmtoff(const std::tm&) { return 0; }\n"
+    "inline const char* tm_zone(const std::tm&) { return \"\"; }\n"
+    "#endif\n"
+)
+io.open(path, "w", encoding="utf-8").write(src.replace(anchor, shim + anchor, 1))
+print("cctz: patched")
+PYEOF
 
       - name: Configure (Switch toolchain)
         run: |
