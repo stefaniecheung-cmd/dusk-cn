@@ -55,17 +55,43 @@ jobs:
             || { echo "FATAL: /opt/nvk-switch/lib/libvulkan.a missing"; exit 1; }
           ls -la /opt/nvk-switch/lib
 
-      # pkg.devkitpro.org sits behind Cloudflare and commonly answers 403 from CI runners,
-      # so every pacman call here is best-effort. None of these are needed to *configure*:
-      # aurora_core only links drm_nouveau/zstd, so a missing portlib shows up at link time.
-      - name: Install Switch portlibs
+      # aurora-core links libdrm_nouveau + zstd on Switch. These normally come from
+      # devkitPro's portlibs, but pkg.devkitpro.org answers pacman with 403 from CI
+      # egress IPs (Cloudflare), so treat pacman as best-effort and fall back to
+      # source builds (both are small and build with the devkitA64 toolchain in the
+      # image). None of this is needed to *configure*: a missing portlib only shows
+      # up at link time, so the step must not abort the job.
+      - name: Switch portlibs (libdrm_nouveau, zstd)
         continue-on-error: true
         run: |
+          export DEVKITPRO=/opt/devkitpro
           PKGMGR="$(command -v dkp-pacman || command -v pacman)"
           "$PKGMGR" -Sy || "$PKGMGR" -Sy || echo "WARN: cannot sync dkp databases (403 from Cloudflare is common)"
           "$PKGMGR" -Ss drm_nouveau || true
           "$PKGMGR" -S --noconfirm --needed switch-libdrm_nouveau switch-zstd \
-            || echo "WARN: portlib install failed - link stage will tell"
+            || echo "WARN: pacman install failed - building from source"
+
+          have() { find /opt/devkitpro -name "$1" -print -quit 2>/dev/null; }
+
+          if [ -z "$(have libdrm_nouveau.a)" ]; then
+            echo "== libdrm_nouveau: building from source =="
+            git clone --depth 1 https://github.com/devkitPro/libdrm_nouveau.git /tmp/libdrm_nouveau
+            make -C /tmp/libdrm_nouveau -j4 && make -C /tmp/libdrm_nouveau install
+          fi
+
+          if [ -z "$(have libzstd.a)" ]; then
+            echo "== zstd: building from source =="
+            git clone --depth 1 -b v1.5.6 https://github.com/facebook/zstd.git /tmp/zstd
+            make -C /tmp/zstd/lib -j4 libzstd.a \
+              CC=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc \
+              AR=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-ar
+            mkdir -p $DEVKITPRO/portlibs/switch/lib
+            cp /tmp/zstd/lib/libzstd.a $DEVKITPRO/portlibs/switch/lib/
+          fi
+
+          echo "== portlib status =="
+          echo "libdrm_nouveau.a -> $(have libdrm_nouveau.a || echo MISSING)"
+          echo "libzstd.a        -> $(have libzstd.a || echo MISSING)"
 
       - uses: actions/checkout@v4
         with:
