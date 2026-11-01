@@ -93,3 +93,21 @@ if (AURORA_PLATFORM_SWITCH AND NOT TARGET aurora::thp)
     set_target_properties(aurora_thp PROPERTIES FOLDER "aurora")
     unset(_dusk_thp_root)
 endif ()
+
+# --- zlib -----------------------------------------------------------------------------
+# GAME_LIBS links ZLIB::ZLIB. Nothing on the Switch side runs find_package(ZLIB) (and the
+# cross-compile search would not pick up devkitPro's portlib anyway), so wire the static
+# archive the CI step installs/builds into an imported target. Mirrors the libzstd_static
+# handling above: pre-defining it keeps aurora's own dependency fetch out of the picture.
+if (AURORA_PLATFORM_SWITCH AND NOT TARGET ZLIB::ZLIB)
+    find_library(DUSK_SWITCH_LIBZ NAMES z libz.a
+        PATHS "$ENV{DEVKITPRO}/portlibs/switch/lib" /opt/devkitpro/portlibs/switch/lib NO_DEFAULT_PATH)
+    if (DUSK_SWITCH_LIBZ)
+        add_library(ZLIB::ZLIB STATIC IMPORTED GLOBAL)
+        set_target_properties(ZLIB::ZLIB PROPERTIES IMPORTED_LOCATION "${DUSK_SWITCH_LIBZ}")
+        message(STATUS "dusk/switch: ZLIB::ZLIB -> ${DUSK_SWITCH_LIBZ}")
+    else ()
+        message(WARNING "dusk/switch: no libz.a under $ENV{DEVKITPRO}/portlibs/switch/lib - "
+                        "ZLIB::ZLIB will stay undefined and the link step will fail")
+    endif ()
+endif ()
