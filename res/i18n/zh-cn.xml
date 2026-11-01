@@ -1445,4 +1445,16 @@
   <entry key="SAVE">保存</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">复制颜色</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE">预期的存档路径不是常规文件。</entry>
+  <entry key="THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS">存档文件名与其包含的存档数据不匹配。</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE">预期的存档路径已被占用。请检查其文件名和大小写。</entry>
+  <entry key="THE_SAVE_FILE_COULD_NOT_BE_DELETED">无法删除存档文件。</entry>
+  <entry key="ENABLED_MODS">已启用的 MOD：</entry>
+  <entry key="SHOW_SHADER_COMPILATION">显示着色器编译</entry>
+  <entry key="NO_HIT_STUN">无受击硬直</entry>
+  <entry key="DISABLES_HIT_STUN_FRAMES_AFTER_ATTACKS">禁用攻击后的受击硬直帧。</entry>
+  <entry key="CHEAT_INFINITE_EPONA_STAMINA">无限伊波娜体力</entry>
+  <entry key="CHEAT_INFINITE_EPONA_STAMINA_HELP">伊波娜的体力不会耗尽。</entry>
+  <entry key="IMPORT_ANYWAY">仍然导入</entry>
+  <entry key="THIS_SAVE_IS_FROM_A_DIFFERENT_REGION_OR_PLATFORM_THAN_THE_CONFIGURED_DISC_AND_MAY_NOT_W">该存档来自与当前配置光盘不同的地区或平台，可能无法正常工作。</entry>
 </localization>

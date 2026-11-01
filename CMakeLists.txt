@@ -158,6 +158,7 @@ elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
             $<$<COMPILE_LANGUAGE:C,CXX>:/bigobj>
             $<$<COMPILE_LANGUAGE:C,CXX>:/MP>
             $<$<COMPILE_LANGUAGE:C,CXX>:/FS>
+            /Zc:__cplusplus # Enable updated `__cplusplus` macro
     )
 
     if (NOT DUSK_BUILD_WARNINGS)
@@ -447,7 +448,8 @@ if (DUSK_ENABLE_CODE_MODS)
             target_link_options(dusklight PRIVATE /FUNCTIONPADMIN /OPT:NOICF)
         endif ()
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "^(AppleClang|Clang|GNU)$")
-        if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$" OR CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+        if ((CMAKE_OSX_ARCHITECTURES MATCHES "^(arm64|aarch64)$") OR
+                (NOT CMAKE_OSX_ARCHITECTURES AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$"))
             set(DUSK_PATCHABLE_ENTRY_FLAG $<$<COMPILE_LANGUAGE:C,CXX>:-fpatchable-function-entry=2,1>)
         else ()
             set(DUSK_PATCHABLE_ENTRY_FLAG $<$<COMPILE_LANGUAGE:C,CXX>:-fpatchable-function-entry=10,4>)

@@ -1454,6 +1454,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             "[TRANSFORM_INSTANTLY_BY_PRESSING_R_AND_Y_SIMULTANEOUSLY]");
         addOption("[AIMING_RETICLE]", getSettings().game.aimingReticle,
             "[SHOWS_THE_AIMING_RETICLE_FOR_BOW_AND_SLINGSHOT]");
+        addOption("[NO_HIT_STUN]", getSettings().game.noHitStun,
+            "[DISABLES_HIT_STUN_FRAMES_AFTER_ATTACKS]");
 
         leftPane.add_section("[SPEEDRUNNING]");
         config_bool_select(leftPane, rightPane, getSettings().game.speedrunMode,
@@ -1607,6 +1609,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             });
         addCheat("[CHEAT_INVINCIBLE_ENEMIES]", getSettings().game.invincibleEnemies,
             "[CHEAT_INVINCIBLE_ENEMIES_HELP]");
+        addCheat("[CHEAT_INFINITE_EPONA_STAMINA]", getSettings().game.infiniteEponaStamina,
+            "[CHEAT_INFINITE_EPONA_STAMINA_HELP]");
     });
 
     add_tab("[INTERFACE]", [this](Rml::Element* content) {
@@ -1757,6 +1761,12 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             {
                 .key = "[SKIP_DUSKLIGHT_MAIN_MENU]",
                 .helpText = "[WHEN_STARTING_DUSKLIGHT_SKIP_THE_MAIN_MENU_AND_BOOT_STRAIGHT_INTO_THE_GA]",
+            });
+        config_bool_select(leftPane, rightPane, getSettings().backend.showPipelineCompilation,
+            {
+                .key = "[SHOW_SHADER_COMPILATION]",
+                .helpText =
+                    "[SHOW_AN_OVERLAY_WHEN_SHADERS_ARE_BEING_COMPILED_FOR_YOUR_HARDWARE]",
             });
         config_bool_select(leftPane, rightPane, getSettings().backend.checkForUpdates,
             {
