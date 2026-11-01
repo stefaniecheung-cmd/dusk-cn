@@ -173,68 +173,14 @@ jobs:
           done
           git -C "$DS" log --oneline -1
 
-      # Dawn vendors abseil, which assumes a POSIX host in two places. devkitA64's newlib
-      # breaks both:
-      #   * absl/base/internal/sysinfo.cc - GetTID() falls back to
-      #     static_cast<pid_t>(pthread_self()), but newlib's pthread_t is an opaque
-      #     `struct __pthread_t *` (sys/_pthreadtypes.h), so the static_cast is invalid.
-      #     Cast the pointer value instead: it is still unique per thread, which is all
-      #     GetCachedTID() needs.
-      #   * absl/base/internal/thread_identity.cc - SetCurrentThreadIdentity() masks all
-      #     signals around pthread_setspecific() via sigfillset/pthread_sigmask/SIG_SETMASK.
-      #     Horizon has no POSIX signals, so take the same branch abseil already uses for
-      #     Emscripten/WASI/MinGW (plain pthread_setspecific, no signal handling).
+      # Dawn vendors abseil, whose pinned Chromium revision assumes a glibc/BSD host.
+      # devkitA64's newlib breaks it in four places (opaque pthread_t, POSIX signal masking,
+      # glibc <link.h> ELF symbolization, struct tm's tm_gmtoff extension). All four
+      # workarounds live in ci/patches/abseil_newlib.py - a heredoc cannot hold this, because
+      # YAML block scalars require indentation while `<<'PYEOF'` requires the terminator at
+      # column 0. The script is idempotent, so a cache-restored tree is patched once.
       - name: Patch abseil for Horizon (newlib)
-        run: |
-          AB=platforms/switch/reference/dawn-switch/third_party/abseil-cpp
-          test -f "$AB/absl/base/internal/sysinfo.cc" || { echo "FATAL: abseil not cloned"; exit 1; }
-          sed -i 's/return static_cast<pid_t>(pthread_self());/return static_cast<pid_t>(reinterpret_cast<unsigned long>(pthread_self()));/' \
-            "$AB/absl/base/internal/sysinfo.cc"
-          if ! grep -q '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"; then
-            sed -i 's/defined(__hexagon__)/defined(__hexagon__) || defined(__SWITCH__)/' \
-              "$AB/absl/base/internal/thread_identity.cc"
-          fi
-          #   * absl/debugging/internal/elf_mem_image.h - devkitA64 targets ELF, so abseil
-          #     defines ABSL_HAVE_ELF_MEM_IMAGE and pulls in glibc's <link.h> (ElfW/dl_iterate
-          #     phdr symbolization). newlib has no <link.h>; opt out the same way the header
-          #     already excludes OpenBSD/QNX/wasm/Haiku/VxWorks/hexagon/Xtensa.
-          if ! grep -q '__SWITCH__' "$AB/absl/debugging/internal/elf_mem_image.h"; then
-            sed -i 's/!defined(__XTENSA__)/!defined(__XTENSA__) \&\& !defined(__SWITCH__)/' \
-              "$AB/absl/debugging/internal/elf_mem_image.h"
-          fi
-          grep -n 'reinterpret_cast<unsigned long>' "$AB/absl/base/internal/sysinfo.cc"
-          grep -n '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"
-          grep -n '__SWITCH__' "$AB/absl/debugging/internal/elf_mem_image.h"
-          #   * absl/time/internal/cctz/src/time_zone_libc.cc - the generic fallback declares
-          #     `template<class T> auto tm_gmtoff(const T&) -> decltype(tm.tm_gmtoff)` (and the
-          #     __tm_gmtoff spelling). newlib's struct tm has neither field, so deduction fails:
-          #     "no matching function for call to 'tm_gmtoff(std::tm{})'". Add a non-template
-          #     exact-match overload, which wins overload resolution and keeps the templates
-          #     uninstantiated. Done in Python because the anchor is a two-line template.
-          python3 - "$AB/absl/time/internal/cctz/src/time_zone_libc.cc" <<'PYEOF'
-import io, sys
-path = sys.argv[1]
-src = io.open(path, encoding="utf-8").read()
-if "__SWITCH__" in src:
-    print("cctz: already patched")
-    sys.exit(0)
-anchor = "auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {"
-if anchor not in src:
-    print("WARN: cctz anchor not found, leaving file untouched")
-    sys.exit(0)
-shim = (
-    "#if defined(__SWITCH__)\n"
-    "// newlib's struct tm carries no tm_gmtoff/__tm_gmtoff extension fields, so the\n"
-    "// generic fallback templates below cannot be instantiated for it at all. A\n"
-    "// non-template exact-match overload wins overload resolution and leaves them\n"
-    "// uninstantiated. Horizon has no zone database, so UTC offset 0 / no zone name.\n"
-    "inline long tm_gmtoff(const std::tm&) { return 0; }\n"
-    "inline const char* tm_zone(const std::tm&) { return \"\"; }\n"
-    "#endif\n"
-)
-io.open(path, "w", encoding="utf-8").write(src.replace(anchor, shim + anchor, 1))
-print("cctz: patched")
-PYEOF
+        run: python3 ci/patches/abseil_newlib.py "$PWD/platforms/switch/reference/dawn-switch/third_party/abseil-cpp"
 
       - name: Configure (Switch toolchain)
         run: |
