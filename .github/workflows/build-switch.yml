@@ -48,26 +48,31 @@ jobs:
         uses: actions/cache@v4
         with:
           path: platforms/switch/reference/dawn-switch
-          key: dawn-switch-switch-${{ vars.DAWN_SWITCH_REV || 'pinned' }}
+          key: dawn-switch-switch-v2-${{ vars.DAWN_SWITCH_REV || 'pinned' }}
       - name: Clone dawn-switch
         run: |
-          # dawn's third_party deps (abseil, spirv-tools, glslang, ...) are git submodules —
+          # dawn's third_party deps (spirv-tools, glslang, abseil, ...) are git submodules —
           # a plain shallow clone leaves them empty and Configure fails on missing CMakeLists.txt.
+          # Submodules are cloned WITHOUT --depth 1: their gitlinks pin commits that are not the
+          # branch tip, and a shallow submodule clone then fails with "Unable to fetch ... trying
+          # to directly fetch <sha>".
           # NOTE: some nested ANGLE test submodules (gles1_conform etc.) point at
           # chrome-internal.googlesource.com and are not anonymously reachable; `|| true`
           # keeps the clone going and the sanity check below validates what we actually need.
           git config --global --add safe.directory '*'
           DS=platforms/switch/reference/dawn-switch
-          if [ ! -d "$DS/.git" ] || [ ! -d "$DS/third_party/abseil-cpp" ] || [ -z "$(ls -A "$DS/third_party" 2>/dev/null)" ]; then
+          if [ ! -d "$DS/.git" ] || [ -z "$(ls -A "$DS/third_party/spirv-tools" 2>/dev/null)" ]; then
             rm -rf "$DS"
             mkdir -p platforms/switch/reference
             git clone --depth 1 --branch switch --jobs 4 \
               https://github.com/danfromtico/dawn-switch.git "$DS"
-            git -C "$DS" submodule update --init --recursive --depth 1 --jobs 4 || true
+            git -C "$DS" submodule update --init --recursive --jobs 4 || true
           fi
-          for d in third_party/abseil-cpp third_party/spirv-tools third_party/glslang; do
-            [ -f "$DS/$d/CMakeLists.txt" ] || { echo "FATAL: $DS/$d missing after clone"; exit 1; }
+          for d in spirv-tools glslang; do
+            found=$(find "$DS/third_party" -maxdepth 3 -type d -name "$d" -exec test -f "{}/CMakeLists.txt" \; -print -quit)
+            [ -n "$found" ] || { echo "FATAL: submodule '$d' missing after clone"; exit 1; }
           done
+          git -C "$DS" submodule status --recursive 2>/dev/null | grep -cE '^-' | xargs -I{} echo "uninitialized submodules: {}"
           git -C "$DS" log --oneline -1
 
       - name: Configure (Switch toolchain)
