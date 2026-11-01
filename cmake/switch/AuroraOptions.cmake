@@ -29,6 +29,18 @@ set(AURORA_CACHE_USE_ZSTD ON CACHE BOOL "Compress WebGPU cache entries with zstd
 # (which also builds a `zstd` CLI EXECUTABLE target that collides with GAME_LIBS' plain `zstd`
 # portlib link -> "Target zstd of type EXECUTABLE may not be linked"). Pre-defining
 # libzstd_static makes aurora/extern/CMakeLists take its "Using existing zstd" branch (no fetch).
+# borealis' io / disc / data / file_select modules all pull in borealis_sdl_dep, which needs an
+# SDL3 target. There is no SDL3 for Horizon: aurora-switch answers this with a standalone
+# interface target (see AuroraSDL3Provider.cmake, AURORA_PLATFORM_SWITCH branch) backed by libnx
+# + its SDL3 shims. borealis only consults that provider when it bootstraps aurora itself; here
+# aurora::core already exists (added above), so it skips the bootstrap and falls through to
+# find_package(SDL3 CONFIG REQUIRED), which cannot succeed. Define the target up front so
+# borealis links aurora-switch's Switch backend instead of searching for a package.
+if (NOT TARGET SDL3::SDL3 AND NOT TARGET SDL3::SDL3-static)
+    add_library(aurora_sdl3_switch_shim INTERFACE)
+    add_library(SDL3::SDL3-static ALIAS aurora_sdl3_switch_shim)
+endif ()
+
 if (NOT TARGET libzstd_static)
     find_library(DUSK_SWITCH_LIBZSTD NAMES zstd libzstd
         PATHS "$ENV{DEVKITPRO}/portlibs/switch/lib" /opt/devkitpro/portlibs/switch/lib NO_DEFAULT_PATH)
