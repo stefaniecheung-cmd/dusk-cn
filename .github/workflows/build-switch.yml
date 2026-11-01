@@ -194,8 +194,17 @@ jobs:
             sed -i 's/defined(__hexagon__)/defined(__hexagon__) || defined(__SWITCH__)/' \
               "$AB/absl/base/internal/thread_identity.cc"
           fi
+          #   * absl/debugging/internal/elf_mem_image.h - devkitA64 targets ELF, so abseil
+          #     defines ABSL_HAVE_ELF_MEM_IMAGE and pulls in glibc's <link.h> (ElfW/dl_iterate
+          #     phdr symbolization). newlib has no <link.h>; opt out the same way the header
+          #     already excludes OpenBSD/QNX/wasm/Haiku/VxWorks/hexagon/Xtensa.
+          if ! grep -q '__SWITCH__' "$AB/absl/debugging/internal/elf_mem_image.h"; then
+            sed -i 's/!defined(__XTENSA__)/!defined(__XTENSA__) \&\& !defined(__SWITCH__)/' \
+              "$AB/absl/debugging/internal/elf_mem_image.h"
+          fi
           grep -n 'reinterpret_cast<unsigned long>' "$AB/absl/base/internal/sysinfo.cc"
           grep -n '__SWITCH__' "$AB/absl/base/internal/thread_identity.cc"
+          grep -n '__SWITCH__' "$AB/absl/debugging/internal/elf_mem_image.h"
 
       - name: Configure (Switch toolchain)
         run: |
