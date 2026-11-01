@@ -33,7 +33,7 @@
   <entry key="ENGLISH">English</entry>
   <entry key="SIMPLIFIED_CHINESE">Simplified Chinese</entry>
   <entry key="WII">Wii</entry>
-  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT"><br/>Applies to Dusklight UI text.</entry>
+  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT">S’applique au texte de l’interface Dusklight.</entry>
   <entry key="SETTINGS">Settings</entry>
   <entry key="WARP">Warp</entry>
   <entry key="EDITOR">Editor</entry>
@@ -1457,4 +1457,12 @@
   <entry key="SWITCH_CPU_BOOST_PLUS_HELP">Palier sup&#233;rieur&#160;: GPU 921 MHz + m&#233;moire 1600 MHz en plus du boost CPU. Un overclocking qui n&#233;cessite sys-clk-OC&#160;; sur un firmware officiel le GPU est brid&#233; &#224; 768 MHz. Remplace le boost CPU.</entry>
   <entry key="DISABLE_SHADOWS">D&#233;sactiver les ombres</entry>
   <entry key="DISABLE_SHADOWS_HELP">Ignore toute la passe d&#39;ombres pour un gain de performances important, au prix des ombres.</entry>
+  <entry key="MOD_FAILED">Échec du mod</entry>
+  <entry key="MODS_FAILED">Échec de plusieurs mods</entry>
+  <entry key="MOD_FAILED_DISABLED">a échoué et a été désactivé.</entry>
+  <entry key="MODS_FAILED_DISABLED">mods ont échoué et ont été désactivés.</entry>
+  <entry key="CHECK_MODS_FOR_MORE_INFORMATION">Consultez Mods pour plus d’informations.</entry>
+  <entry key="MOD_INSTALLED">Mod installé</entry>
+  <entry key="MOD_INSTALL_FAILED">Échec de l’installation du mod</entry>
+  <entry key="LOADER_REJECTED_PACKAGE">Le chargeur a rejeté le paquet</entry>
 </localization>

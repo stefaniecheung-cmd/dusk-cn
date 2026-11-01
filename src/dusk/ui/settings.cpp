@@ -1801,8 +1801,8 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             });
         config_bool_select(leftPane, rightPane, getSettings().backend.showPipelineCompilation,
             {
-                .key = "Show Shader Compilation",
-                .helpText = "Show an overlay when shaders are being compiled for your hardware.",
+                .key = "[SHOW_PIPELINE_COMPILATION]",
+                .helpText = "[SHOW_AN_OVERLAY_WHEN_SHADERS_ARE_BEING_COMPILED_FOR_YOUR_HARDWARE]",
             });
         config_bool_select(leftPane, rightPane, getSettings().backend.checkForUpdates,
             {

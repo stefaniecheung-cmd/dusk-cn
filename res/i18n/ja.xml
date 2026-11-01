@@ -33,7 +33,7 @@
   <entry key="ENGLISH">English</entry>
   <entry key="SIMPLIFIED_CHINESE">Simplified Chinese</entry>
   <entry key="WII">Wii</entry>
-  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT"><br/>Applies to Dusklight UI text.</entry>
+  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT">Dusklight の UI テキストにのみ適用されます。</entry>
   <entry key="SETTINGS">Settings</entry>
   <entry key="WARP">Warp</entry>
   <entry key="EDITOR">Editor</entry>
@@ -1457,4 +1457,12 @@
   <entry key="SWITCH_CPU_BOOST_PLUS_HELP">より強力な段階：CPU ブーストに加え GPU 921 MHz・メモリ 1600 MHz を要求します。オーバークロックのため sys-clk-OC が必要です。標準ファームウェアでは GPU は 768 MHz に制限されます。CPU ブーストを上書きします。</entry>
   <entry key="DISABLE_SHADOWS">影を無効化</entry>
   <entry key="DISABLE_SHADOWS_HELP">シャドウパス全体をスキップし、影を犠牲にして大幅なパフォーマンス向上を得ます。</entry>
+  <entry key="MOD_FAILED">Mod の読み込みに失敗</entry>
+  <entry key="MODS_FAILED">複数の Mod の読み込みに失敗</entry>
+  <entry key="MOD_FAILED_DISABLED">読み込みに失敗し無効化されました。</entry>
+  <entry key="MODS_FAILED_DISABLED">個の Mod が失敗し無効化されました。</entry>
+  <entry key="CHECK_MODS_FOR_MORE_INFORMATION">詳細は Mod 画面を確認してください。</entry>
+  <entry key="MOD_INSTALLED">Mod をインストールしました</entry>
+  <entry key="MOD_INSTALL_FAILED">Mod のインストールに失敗</entry>
+  <entry key="LOADER_REJECTED_PACKAGE">ローダーがパッケージを拒否しました</entry>
 </localization>

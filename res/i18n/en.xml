@@ -33,7 +33,7 @@
   <entry key="ENGLISH">English</entry>
   <entry key="SIMPLIFIED_CHINESE">Simplified Chinese</entry>
   <entry key="WII">Wii</entry>
-  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT"><br/>Applies to Dusklight UI text.</entry>
+  <entry key="APPLIES_TO_DUSKLIGHT_UI_TEXT">Applies to Dusklight UI text.</entry>
   <entry key="SETTINGS">Settings</entry>
   <entry key="WARP">Warp</entry>
   <entry key="EDITOR">Editor</entry>
@@ -1457,4 +1457,12 @@
   <entry key="SWITCH_CPU_BOOST_PLUS_HELP">Stronger tier: GPU 921 MHz + memory 1600 MHz on top of the CPU boost. An overclock that needs the sys-clk-OC module; on stock firmware the GPU is clamped to 768 MHz. Overrides CPU Boost.</entry>
   <entry key="DISABLE_SHADOWS">Disable Shadows</entry>
   <entry key="DISABLE_SHADOWS_HELP">Skips the entire shadow pass pipeline for a large performance gain at the cost of shadows.</entry>
+  <entry key="MOD_FAILED">Mod failed</entry>
+  <entry key="MODS_FAILED">Mods failed</entry>
+  <entry key="MOD_FAILED_DISABLED">failed and was disabled.</entry>
+  <entry key="MODS_FAILED_DISABLED">mods failed and were disabled.</entry>
+  <entry key="CHECK_MODS_FOR_MORE_INFORMATION">Check Mods for more information.</entry>
+  <entry key="MOD_INSTALLED">Mod installed</entry>
+  <entry key="MOD_INSTALL_FAILED">Mod install failed</entry>
+  <entry key="LOADER_REJECTED_PACKAGE">The loader rejected the package</entry>
 </localization>

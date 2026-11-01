@@ -564,15 +564,13 @@ void ModLoader::flush_toasts() {
 
     ui::Toast toast{.type = "warning", .duration = std::chrono::seconds{5}};
     if (names.size() == 1) {
-        toast.title = "Mod failed";
+        toast.title = "[MOD_FAILED]";
         toast.content =
-            fmt::format("<div><b>{}</b> failed and was disabled.</div><div>Check Mods for "
-                        "more information.</div>",
+            fmt::format("<div><b>{}</b> [MOD_FAILED_DISABLED]</div><div>[CHECK_MODS_FOR_MORE_INFORMATION]</div>",
                 ui::escape(names.front()));
     } else {
-        toast.title = "Mods failed";
-        toast.content = fmt::format("<div><b>{} mods</b> failed and were disabled.</div><div>Check "
-                                    "Mods for more information.</div>",
+        toast.title = "[MODS_FAILED]";
+        toast.content = fmt::format("<div><b>{}</b> [MODS_FAILED_DISABLED]</div><div>[CHECK_MODS_FOR_MORE_INFORMATION]</div>",
             names.size());
     }
     ui::push_toast(std::move(toast));
@@ -1119,7 +1117,7 @@ void ModLoader::apply_pending_requests() {
                             ui::escape(ui::mod_image_source(*result.mod, metadata.iconPath)));
                 ui::push_toast({
                     .type = "mod-installed",
-                    .title = "Mod installed",
+                    .title = "[MOD_INSTALLED]",
                     .content = fmt::format(
                         R"(<row><mod-icon>{}</mod-icon><mod-info><mod-name><b>{}</b><small class="version">v{}</small></mod-name><small>{}</small></mod-info></row>)",
                         iconRml, ui::escape(metadata.name), ui::escape(metadata.version),
@@ -1129,9 +1127,9 @@ void ModLoader::apply_pending_requests() {
             } else if (!result.success && result.mod == nullptr) {
                 ui::push_toast({
                     .type = "warning",
-                    .title = "Mod install failed",
+                    .title = "[MOD_INSTALL_FAILED]",
                     .content =
-                        result.message.empty() ? "The loader rejected the package" : result.message,
+                        result.message.empty() ? "[LOADER_REJECTED_PACKAGE]" : result.message,
                     .duration = std::chrono::seconds{6},
                 });
             }
