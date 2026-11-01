@@ -55,3 +55,41 @@ endif ()
 # .db format is unchanged, so we can still consume pre-seeded pipeline_cache.db / dawn_cache.db.
 # (Applied after add_subdirectory via LinkOptions? No: applied here if the target already exists
 # is impossible pre-add_subdirectory; the definition block lives in switch/LinkOptions.cmake.)
+
+# --- THP ------------------------------------------------------------------------------
+# dusk-cn's GAME_LIBS links aurora::thp: upstream aurora absorbed the THP decoder into
+# lib/dolphin/thp (THPDec.cpp + THPAudio.cpp). The aurora-switch fork used on Switch dropped
+# both that directory and cmake/aurora_thp.cmake, so the target is never created here and
+# Configure dies with "Target JSystem_* links to aurora::thp but the target was not found".
+#
+# Switch's SourceFilter keeps src/d/actor/d_a_movie_player.cpp, which references real THP
+# symbols (THPPlayerInit/Open, THPDecompressYUV, THPInit, THPHuff*), so an INTERFACE stub
+# would only move the failure from configure time to link time. Build upstream aurora's
+# decoder instead - it is plain portable C++ (bitstream/Huffman/IDCT, no platform code).
+#
+# The include dirs are PRIVATE on purpose: extern/aurora is NOT the tree the rest of the
+# Switch build compiles against, and leaking its headers onto every consumer of aurora::thp
+# (i.e. all game targets) would shadow aurora-switch's own headers.
+if (AURORA_PLATFORM_SWITCH AND NOT TARGET aurora::thp)
+    set(_dusk_thp_root "${CMAKE_CURRENT_SOURCE_DIR}/extern/aurora")
+    if (NOT EXISTS "${_dusk_thp_root}/lib/dolphin/thp/THPDec.cpp")
+        message(FATAL_ERROR
+            "aurora::thp unavailable on Switch: ${_dusk_thp_root}/lib/dolphin/thp is missing "
+            "(extern/aurora submodule not checked out?)")
+    endif ()
+    add_library(aurora_thp STATIC
+        "${_dusk_thp_root}/lib/dolphin/thp/THPDec.cpp"
+        "${_dusk_thp_root}/lib/dolphin/thp/THPAudio.cpp")
+    add_library(aurora::thp ALIAS aurora_thp)
+    # <aurora/aurora.h> and <dolphin/thp.h> come from upstream; internal.hpp/logging.hpp are
+    # pulled in relative to the source file, so only the include root has to be added.
+    target_include_directories(aurora_thp PRIVATE
+        "${_dusk_thp_root}/include"
+        "${_dusk_thp_root}/lib")
+    # Forward references: both targets are created by extern/aurora-switch below, and CMake
+    # resolves link dependencies at generate time. Declaring them keeps aurora_thp ahead of
+    # aurora::core on the link line so log_internal()/fmt resolve.
+    target_link_libraries(aurora_thp PUBLIC aurora::core fmt::fmt)
+    set_target_properties(aurora_thp PROPERTIES FOLDER "aurora")
+    unset(_dusk_thp_root)
+endif ()
