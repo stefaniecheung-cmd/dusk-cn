@@ -68,7 +68,7 @@ jobs:
           PKGMGR="$(command -v dkp-pacman || command -v pacman)"
           "$PKGMGR" -Sy || "$PKGMGR" -Sy || echo "WARN: cannot sync dkp databases (403 from Cloudflare is common)"
           "$PKGMGR" -Ss drm_nouveau || true
-          "$PKGMGR" -S --noconfirm --needed switch-libdrm_nouveau switch-zstd \
+          "$PKGMGR" -S --noconfirm --needed switch-libdrm_nouveau switch-zstd switch-zlib \
             || echo "WARN: pacman install failed - building from source"
 
           have() { find /opt/devkitpro -name "$1" -print -quit 2>/dev/null; }
@@ -89,9 +89,29 @@ jobs:
             cp /tmp/zstd/lib/libzstd.a $DEVKITPRO/portlibs/switch/lib/
           fi
 
+          # dusk's GAME_LIBS links ZLIB::ZLIB; nothing on the Switch side provides it, and
+          # devkitPro only ships it as a portlib (pacman is best-effort here), so fall back to
+          # a static build with the devkitA64 toolchain. zlib's configure is plain shell and
+          # cross-compiles fine with CC/AR/RANLIB overridden.
+          if [ -z "$(have libz.a)" ]; then
+            echo "== zlib: building from source =="
+            rm -rf /tmp/zlib-src
+            git clone --depth 1 -b v1.3.1 https://github.com/madler/zlib.git /tmp/zlib-src
+            ( cd /tmp/zlib-src
+              CC=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc \
+              AR=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-ar \
+              RANLIB=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-ranlib \
+              ./configure --static --prefix=$DEVKITPRO/portlibs/switch
+              make -j4 libz.a
+              mkdir -p $DEVKITPRO/portlibs/switch/lib $DEVKITPRO/portlibs/switch/include
+              cp libz.a $DEVKITPRO/portlibs/switch/lib/
+              cp zlib.h zconf.h $DEVKITPRO/portlibs/switch/include/ )
+          fi
+
           echo "== portlib status =="
           echo "libdrm_nouveau.a -> $(have libdrm_nouveau.a || echo MISSING)"
           echo "libzstd.a        -> $(have libzstd.a || echo MISSING)"
+          echo "libz.a           -> $(have libz.a || echo MISSING)"
 
       - uses: actions/checkout@v4
         with:
