@@ -87,10 +87,16 @@ def main():
 
 # The cctz fallback templates are SFINAE-unfriendly: a trailing
 # `-> decltype(tm.tm_gmtoff)` is eagerly substituted, so the only safe fix is to
-# replace the whole template trio with non-template overloads. The exact block
-# differs across abseil revisions (the newer one has a leading `#if` guarding a
-# `tm_gmtoff_t`/`tm_zone_t` alias), so match on the distinctive first template
-# and consume through the tm_zone template's closing brace.
+# replace the whole tm_gmtoff/tm_zone adapter block with non-template overloads.
+# IMPORTANT: the templates live inside a `#if defined(tm_gmtoff) ... #elif ...
+# #else ... #endif` conditional, so removing just the template bodies leaves the
+# surrounding preprocessor directives dangling (producing `#elif after #else`).
+# We therefore replace the ENTIRE block, anchored on two stable markers present
+# in every abseil revision:
+#   start: "#if defined(tm_gmtoff)"  (the first tm_gmtoff spelling branch)
+#   end:   "using tm_gmtoff_t = decltype(tm_gmtoff(std::tm{}));" (unchanged alias)
+# Everything between them (the whole spelling-adapter conditional + the two
+# SFINAE-unfriendly template trios) is dropped, so no directive is left behind.
 def edit_time_zone_libc(root):
     rel = "absl/time/internal/cctz/src/time_zone_libc.cc"
     path = os.path.join(root, rel)
@@ -101,25 +107,32 @@ def edit_time_zone_libc(root):
     if "HORIZON_NEWLIB_TM_EXTENSIONS" in src:
         print("ok (already patched): %s" % rel)
         return
-    body = src.find("auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {")
-    if body < 0:
-        print("WARN: anchor absent, skipping: %s" % rel)
-        return
-    # Walk back to the `template <class T>` keyword line that introduces this
-    # first tm_gmtoff template, so the whole template trio is removed and no
-    # dangling `template <class T>` keyword is left behind.
-    start = src.rfind("template", 0, body)
+    start = src.find("#if defined(tm_gmtoff)")
     if start < 0:
-        print("WARN: template keyword absent, skipping: %s" % rel)
+        print("WARN: anchor '#if defined(tm_gmtoff)' absent, skipping: %s" % rel)
         return
-    # End of the last template (tm_zone) - search from the first template onward.
-    end = src.find("}", src.find("tm_zone", body)) + 1
+    # The adapter block is itself wrapped by an outer conditional
+    # (`#if defined(_WIN32)... #elif ... #else [adapter] #endif`). We must remove
+    # only the inner spelling-adapter conditional and leave the outer `#endif`
+    # (which closes that outer `#if/#elif/#else`) in place. That `#endif` is the
+    # last one before the `using tm_gmtoff_t = ...` alias, so anchor the end on
+    # the alias line and keep everything from the `#endif` onward.
+    alias_anchor = "using tm_gmtoff_t = decltype(tm_gmtoff(std::tm{}));"
+    alias = src.find(alias_anchor, start)
+    if alias < 0:
+        print("WARN: anchor 'using tm_gmtoff_t = ...' absent, skipping: %s" % rel)
+        return
+    end = src.rfind("#endif", start, alias)
+    if end < 0:
+        print("WARN: outer '#endif' absent, skipping: %s" % rel)
+        return
     replacement = (
         "inline long tm_gmtoff(const std::tm&) { return 0; }\n"
         "inline const char* tm_zone(const std::tm&) { return \"\"; }\n"
-        "// HORIZON_NEWLIB_TM_EXTENSIONS: the SFINAE-unfriendly fallback templates\n"
-        "// above were replaced with these non-template overloads for newlib/Horizon,\n"
-        "// whose struct tm has no tm_gmtoff/__tm_gmtoff/tm_zone fields.\n"
+        "// HORIZON_NEWLIB_TM_EXTENSIONS: the spelling-adapter conditional and the\n"
+        "// SFINAE-unfriendly fallback templates below were replaced with these\n"
+        "// non-template overloads for newlib/Horizon, whose struct tm has no\n"
+        "// tm_gmtoff/__tm_gmtoff/tm_zone fields.\n"
     )
     src = src[:start] + replacement + src[end:]
     io.open(path, "w", encoding="utf-8").write(src)
