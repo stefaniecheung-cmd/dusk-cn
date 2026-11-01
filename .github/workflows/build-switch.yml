@@ -55,10 +55,14 @@ jobs:
             || { echo "FATAL: /opt/nvk-switch/lib/libvulkan.a missing"; exit 1; }
           ls -la /opt/nvk-switch/lib
 
+      # pkg.devkitpro.org sits behind Cloudflare and commonly answers 403 from CI runners,
+      # so every pacman call here is best-effort. None of these are needed to *configure*:
+      # aurora_core only links drm_nouveau/zstd, so a missing portlib shows up at link time.
       - name: Install Switch portlibs
+        continue-on-error: true
         run: |
           PKGMGR="$(command -v dkp-pacman || command -v pacman)"
-          "$PKGMGR" -Sy
+          "$PKGMGR" -Sy || "$PKGMGR" -Sy || echo "WARN: cannot sync dkp databases (403 from Cloudflare is common)"
           "$PKGMGR" -Ss drm_nouveau || true
           "$PKGMGR" -S --noconfirm --needed switch-libdrm_nouveau switch-zstd \
             || echo "WARN: portlib install failed - link stage will tell"
@@ -141,6 +145,7 @@ jobs:
             -DDAWN_ENABLE_DESKTOP_GL=OFF \
             -DTINT_BUILD_GLSL_WRITER=OFF \
             -DTINT_BUILD_SPV_WRITER=ON
+            -DTINT_BUILD_IR_BINARY=OFF
 
       - name: Build
         run: cmake --build build-switch -j"$(nproc)"
