@@ -109,7 +109,14 @@ jobs:
             git -C "$DS" submodule init $SUBS
             git -C "$DS" submodule update --jobs 8 $SUBS
             # SPIRV-Tools / Vulkan-Utility-Libraries carry their own external deps.
-            for d in $SUBS; do
+            # emdawnwebgpu's code generator needs these two vendored python deps. They are
+          # plain gitlinks with no CMakeLists.txt, so they must NOT go into $SUBS (whose
+          # entries are validated by looking for one). Run unconditionally so a
+          # cache-restored Dawn tree gets them too.
+          git -C "$DS" submodule update --init --jobs 8 \
+            third_party/jinja2 third_party/markupsafe \
+            || echo "WARN: could not fetch vendored jinja2/markupsafe"
+          for d in $SUBS; do
               if [ -f "$DS/$d/.gitmodules" ]; then
                 git -C "$DS/$d" submodule update --init --recursive --jobs 8 || true
               fi
