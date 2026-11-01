@@ -75,6 +75,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          # Version comes from `git describe --match "v*"`, so tags must be present.
+          fetch-tags: true
 
       - name: Install dependencies
         run: |
@@ -138,6 +140,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          # Version comes from `git describe --match "v*"`, so tags must be present.
+          fetch-tags: true
 
       # The Command Line Tools linker always matches its own SDK.
       - name: "Use the Command Line Tools toolchain"
@@ -205,6 +209,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          # Version comes from `git describe --match "v*"`, so tags must be present.
+          fetch-tags: true
 
       - name: Install dependencies
         run: |
@@ -290,6 +296,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          # Version comes from `git describe --match "v*"`, so tags must be present.
+          fetch-tags: true
 
       - name: Enable Visual Studio environment
         uses: ilammy/msvc-dev-cmd@v1
