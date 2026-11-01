@@ -56,3 +56,6 @@ extract
 
 #draft
 AGENTS.md
+
+# 本地构建依赖缓存（apt 提取的库/源码）
+.deps/
