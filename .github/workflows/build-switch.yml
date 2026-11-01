@@ -178,7 +178,8 @@ jobs:
             -DDAWN_ENABLE_DESKTOP_GL=OFF \
             -DTINT_BUILD_GLSL_WRITER=OFF \
             -DTINT_BUILD_SPV_WRITER=ON \
-            -DTINT_BUILD_IR_BINARY=OFF
+            -DTINT_BUILD_IR_BINARY=OFF \
+            -DDAWN_BUILD_PROTOBUF=OFF
 
       - name: Build
         run: cmake --build build-switch -j"$(nproc)"
