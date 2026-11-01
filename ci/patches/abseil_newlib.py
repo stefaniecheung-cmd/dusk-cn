@@ -25,12 +25,20 @@ places. devkitA64's newlib provides none of them:
   absl/time/internal/cctz/src/time_zone_libc.cc
       The generic fallback declares
       `template<class T> auto tm_gmtoff(const T&) -> decltype(tm.tm_gmtoff)`
-      (plus the __tm_gmtoff spelling). tm_gmtoff/tm_zone are glibc/BSD struct
-      tm extensions that newlib lacks, so deduction fails outright. Upstream
-      abseil later grew a __NEWLIB__ branch, but the pinned revision predates
-      it. Add a non-template exact-match overload: it wins overload resolution
-      and leaves the templates uninstantiated. Horizon has no zone database, so
-      UTC offset 0 / empty zone name.
+      (plus the __tm_gmtoff and tm_zone spellings). tm_gmtoff/tm_zone are
+      glibc/BSD struct tm extensions that newlib lacks. Crucially, these are
+      SFINAE-UNFRIENDLY: the trailing decltype(tm.tm_gmtoff) is evaluated
+      eagerly when the alias
+          using tm_gmtoff_t = decltype(tm_gmtoff(std::tm{}));
+      is formed, so merely adding a competing non-template overload does NOT
+      suppress the templates - they still get instantiated and hard-error.
+      The only correct fix is to REPLACE the template block wholesale with
+      non-template overloads (this is exactly what upstream abseil later did
+      under __NEWLIB__). Horizon has no zone database, so UTC offset 0 / empty
+      zone name. Done unconditionally: this file is only ever compiled for the
+      Switch build, and Dawn compiles abseil as a FetchContent subproject, so
+      the parent toolchain's -D__SWITCH__ (add_definitions) does NOT reach it -
+      a macro guard here would silently compile back out.
 
 Idempotent, so it is safe to re-run against a cache-restored tree.
 """
@@ -74,18 +82,48 @@ def main():
          "!defined(__XTENSA__) && !defined(__SWITCH__)",
          marker="__SWITCH__")
 
-    edit(root, "absl/time/internal/cctz/src/time_zone_libc.cc",
-         "auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {",
-         "#if defined(__SWITCH__)\n"
-         "// newlib's struct tm carries no tm_gmtoff/__tm_gmtoff extension fields, so the\n"
-         "// generic fallback templates below cannot be instantiated for it. A non-template\n"
-         "// exact-match overload wins overload resolution and leaves them uninstantiated.\n"
-         "inline long tm_gmtoff(const std::tm&) { return 0; }\n"
-         "inline const char* tm_zone(const std::tm&) { return \"\"; }\n"
-         "#endif\n"
-         "auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {",
-         marker="__SWITCH__")
+    edit_time_zone_libc(root)
     return 0
+
+# The cctz fallback templates are SFINAE-unfriendly: a trailing
+# `-> decltype(tm.tm_gmtoff)` is eagerly substituted, so the only safe fix is to
+# replace the whole template trio with non-template overloads. The exact block
+# differs across abseil revisions (the newer one has a leading `#if` guarding a
+# `tm_gmtoff_t`/`tm_zone_t` alias), so match on the distinctive first template
+# and consume through the tm_zone template's closing brace.
+def edit_time_zone_libc(root):
+    rel = "absl/time/internal/cctz/src/time_zone_libc.cc"
+    path = os.path.join(root, rel)
+    if not os.path.isfile(path):
+        print("WARN: not found, skipping: %s" % rel)
+        return
+    src = io.open(path, encoding="utf-8").read()
+    if "HORIZON_NEWLIB_TM_EXTENSIONS" in src:
+        print("ok (already patched): %s" % rel)
+        return
+    body = src.find("auto tm_gmtoff(const T& tm) -> decltype(tm.tm_gmtoff) {")
+    if body < 0:
+        print("WARN: anchor absent, skipping: %s" % rel)
+        return
+    # Walk back to the `template <class T>` keyword line that introduces this
+    # first tm_gmtoff template, so the whole template trio is removed and no
+    # dangling `template <class T>` keyword is left behind.
+    start = src.rfind("template", 0, body)
+    if start < 0:
+        print("WARN: template keyword absent, skipping: %s" % rel)
+        return
+    # End of the last template (tm_zone) - search from the first template onward.
+    end = src.find("}", src.find("tm_zone", body)) + 1
+    replacement = (
+        "inline long tm_gmtoff(const std::tm&) { return 0; }\n"
+        "inline const char* tm_zone(const std::tm&) { return \"\"; }\n"
+        "// HORIZON_NEWLIB_TM_EXTENSIONS: the SFINAE-unfriendly fallback templates\n"
+        "// above were replaced with these non-template overloads for newlib/Horizon,\n"
+        "// whose struct tm has no tm_gmtoff/__tm_gmtoff/tm_zone fields.\n"
+    )
+    src = src[:start] + replacement + src[end:]
+    io.open(path, "w", encoding="utf-8").write(src)
+    print("patched: %s" % rel)
 
 if __name__ == "__main__":
     sys.exit(main())
