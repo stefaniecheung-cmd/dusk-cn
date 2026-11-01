@@ -37,6 +37,32 @@ jobs:
           apt-get update
           apt-get -y install git ninja-build ca-certificates
 
+      # devkitPro ships NO Vulkan for Switch (switch-mesa is OpenGL-only; their answer is
+      # deko3d), and Mesa upstream has no libvulkan.a target. Building NVK from source means
+      # cross-compiling Mesa 25 + a Rust sysroot for a tier-3 target: 1-3h and a moving
+      # nightly toolchain. jhuz0/nvk-switch publishes a reproducible prebuilt archive
+      # (NVK + support archives + expat + newlib gap fills + loaderless glue, built from the
+      # public PalindromicBreadLoaf/nxvk), laid out exactly as aurora-core expects:
+      #   <root>/lib/libvulkan.a  and  <root>/include/vulkan/*.h
+      - name: Install prebuilt NVK (Mesa 25.0.7)
+        run: |
+          mkdir -p /opt/nvk-switch
+          curl -sL -o nvk.tar.xz \
+            "https://github.com/jhuz0/nvk-switch/releases/download/nvk-switch-mesa-25.0.7-r1/nvk-switch-25.0.7.tar.xz"
+          tar -xJf nvk.tar.xz -C /opt/nvk-switch
+          rm -f nvk.tar.xz
+          test -f /opt/nvk-switch/lib/libvulkan.a \
+            || { echo "FATAL: /opt/nvk-switch/lib/libvulkan.a missing"; exit 1; }
+          ls -la /opt/nvk-switch/lib
+
+      - name: Install Switch portlibs
+        run: |
+          PKGMGR="$(command -v dkp-pacman || command -v pacman)"
+          "$PKGMGR" -Sy
+          "$PKGMGR" -Ss drm_nouveau || true
+          "$PKGMGR" -S --noconfirm --needed switch-libdrm_nouveau switch-zstd \
+            || echo "WARN: portlib install failed - link stage will tell"
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -100,6 +126,7 @@ jobs:
             -DDUSK_ENABLE_UPDATE_CHECKER=OFF \
             -DDUSK_ENABLE_DISCORD=OFF \
             -DAURORA_PLATFORM_SWITCH=ON \
+            -DDAWN_SWITCH_NVK_ROOT=/opt/nvk-switch \
             -DAURORA_ENABLE_RMLUI=ON \
             -DAURORA_ENABLE_IMGUI=OFF \
             -DAURORA_DAWN_PROVIDER=source \
