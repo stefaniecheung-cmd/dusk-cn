@@ -144,7 +144,7 @@ jobs:
             -DDAWN_ENABLE_OPENGLES=OFF \
             -DDAWN_ENABLE_DESKTOP_GL=OFF \
             -DTINT_BUILD_GLSL_WRITER=OFF \
-            -DTINT_BUILD_SPV_WRITER=ON
+            -DTINT_BUILD_SPV_WRITER=ON \
             -DTINT_BUILD_IR_BINARY=OFF
 
       - name: Build
