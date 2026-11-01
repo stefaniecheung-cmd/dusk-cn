@@ -11,8 +11,6 @@
 #      public) via a 60-90 min Mesa cross-build (Dockerfile + package-nvk.sh). Until a packaged
 #      artifact is published or we add a dedicated CI job for it, provide it via the
 #      DAWN_SWITCH_NVK_ROOT path (aurora-switch defaults to /opt/nvk-switch).
-# configure-time wiring is validated either way; the job is continue-on-error until the NVK
-# package is wired so it never blocks the repo's CI status.
 
 name: Build Switch (NRO)
 
@@ -31,7 +29,6 @@ jobs:
   build-switch:
     name: Build Switch (devkitA64)
     runs-on: ubuntu-24.04
-    continue-on-error: true
     container:
       image: devkitpro/devkita64:latest
     steps:
@@ -54,18 +51,24 @@ jobs:
           key: dawn-switch-switch-${{ vars.DAWN_SWITCH_REV || 'pinned' }}
       - name: Clone dawn-switch
         run: |
-          # dawn's third_party deps (abseil, spirv-tools, vulkan-headers, protobuf, ...)
-          # are git submodules — a plain shallow clone leaves them empty and Configure
-          # fails on missing CMakeLists.txt. Fetch them shallowly too.
+          # dawn's third_party deps (abseil, spirv-tools, glslang, ...) are git submodules —
+          # a plain shallow clone leaves them empty and Configure fails on missing CMakeLists.txt.
+          # NOTE: some nested ANGLE test submodules (gles1_conform etc.) point at
+          # chrome-internal.googlesource.com and are not anonymously reachable; `|| true`
+          # keeps the clone going and the sanity check below validates what we actually need.
           git config --global --add safe.directory '*'
-          if [ ! -d platforms/switch/reference/dawn-switch/.git ]; then
+          DS=platforms/switch/reference/dawn-switch
+          if [ ! -d "$DS/.git" ] || [ ! -d "$DS/third_party/abseil-cpp" ] || [ -z "$(ls -A "$DS/third_party" 2>/dev/null)" ]; then
+            rm -rf "$DS"
             mkdir -p platforms/switch/reference
-            git clone --depth 1 --branch switch \
-              --recurse-submodules --shallow-submodules --jobs 4 \
-              https://github.com/danfromtico/dawn-switch.git \
-              platforms/switch/reference/dawn-switch
+            git clone --depth 1 --branch switch --jobs 4 \
+              https://github.com/danfromtico/dawn-switch.git "$DS"
+            git -C "$DS" submodule update --init --recursive --depth 1 --jobs 4 || true
           fi
-          git -C platforms/switch/reference/dawn-switch log --oneline -1
+          for d in third_party/abseil-cpp third_party/spirv-tools third_party/glslang; do
+            [ -f "$DS/$d/CMakeLists.txt" ] || { echo "FATAL: $DS/$d missing after clone"; exit 1; }
+          done
+          git -C "$DS" log --oneline -1
 
       - name: Configure (Switch toolchain)
         run: |
