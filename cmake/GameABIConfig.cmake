@@ -10,12 +10,28 @@ if (ANDROID)
 endif ()
 
 # Public game headers
+#
+# On Switch the game compiles against the aurora-switch fork (extern/aurora-switch), not the
+# upstream PC aurora tree (extern/aurora). Keeping extern/aurora/include on the include path
+# here lets <dolphin.h> (the unprefixed form JUTGamePad.h uses) resolve to the PC dolphin.h,
+# which #includes <dolphin/arq.h>; that arq.h then re-includes "dolphin/ar.h" which resolves to
+# aurora-switch's ar.h (already defines ARQRequest) -> redefinition/conflicting-typedef errors.
+# aurora-switch ships the full aurora/ + dolphin/ header set (ar.h folds AR + ARQ together and
+# there is no arq.h), so point the ABI dirs at aurora-switch instead on Switch.
+if (AURORA_PLATFORM_SWITCH)
+    set(_dusk_aurora_include_dolphin ${_game_root}/extern/aurora-switch/include/dolphin)
+    set(_dusk_aurora_include        ${_game_root}/extern/aurora-switch/include)
+else ()
+    set(_dusk_aurora_include_dolphin ${_game_root}/extern/aurora/include/dolphin)
+    set(_dusk_aurora_include        ${_game_root}/extern/aurora/include)
+endif ()
+
 set(_game_abi_include_dirs
         ${_game_root}/include
         ${_game_root}/assets/GZ2E01
         ${_game_root}/libs/JSystem/include
-        ${_game_root}/extern/aurora/include/dolphin
-        ${_game_root}/extern/aurora/include
+        ${_dusk_aurora_include_dolphin}
+        ${_dusk_aurora_include}
         ${_game_root}/sdk/include
 )
 
