@@ -17,7 +17,11 @@ struct daMP_THPReadBuffer {
 	BOOL isValid;
 };
 
-#if TARGET_PC
+// Desktop aurora's <dolphin/thp.h> is declarations-only, so the THP container
+// structs are mirrored here. aurora-switch ships a full implementation whose
+// thp.h already defines all six structs and the three counts identically —
+// redeclaring them there is a hard error, so defer to that header on Switch.
+#if TARGET_PC && !defined(__SWITCH__)
 typedef struct THPTextureSet {
 	u8* ytexture;
 	u8* utexture;
