@@ -179,6 +179,14 @@ jobs:
       # workarounds live in ci/patches/abseil_newlib.py - a heredoc cannot hold this, because
       # YAML block scalars require indentation while `<<'PYEOF'` requires the terminator at
       # column 0. The script is idempotent, so a cache-restored tree is patched once.
+      # aurora-switch (branch dusklight-switch-port) is based on an older aurora than
+      # extern/aurora: it lacks <dolphin/arq.h> (ARQ lives in ar.h there) and
+      # OSGetNativeTime(). Both are consumed unconditionally by dusk source, so the
+      # build stops on them. Restored by a forwarding header + an OSGetTime() alias in
+      # ci/patches/aurora_switch_os_compat.py (idempotent, same pattern as the abseil patch).
+      - name: Patch aurora-switch (arq.h, OSGetNativeTime)
+        run: python3 ci/patches/aurora_switch_os_compat.py "$PWD/extern/aurora-switch"
+
       - name: Patch abseil for Horizon (newlib)
         run: python3 ci/patches/abseil_newlib.py "$PWD/platforms/switch/reference/dawn-switch/third_party/abseil-cpp"
 
