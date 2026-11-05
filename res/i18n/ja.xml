@@ -1445,6 +1445,17 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE">想定されたセーブパスが通常のファイルではありません。</entry>
+  <entry key="THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS">セーブファイル名が、その中に含まれるセーブデータと一致しません。</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE">想定されたセーブパスはすでに使用されています。ファイル名と大文字小文字を確認してください。</entry>
+  <entry key="THE_SAVE_FILE_COULD_NOT_BE_DELETED">セーブファイルを削除できませんでした。</entry>
+  <entry key="ENABLED_MODS">有効なMOD：</entry>
+  <entry key="FIRST_PERSON_CAMERA">一人称カメラ</entry>
+  <entry key="CALL_MIDNA">ミドナを呼ぶ</entry>
+  <entry key="OPEN_MAP_SCREEN">マップ画面を開く</entry>
+  <entry key="TOGGLE_MINIMAP">ミニマップの切り替え</entry>
+  <entry key="OPEN_DUSKLIGHT_MENU">Dusklightメニューを開く</entry>
+  <entry key="TURBO_SPEED_BUTTON">倍速ボタン</entry>
   <entry key="IMPORT_ANYWAY">それでもインポート</entry>
   <entry key="REGION_VERSION_WARNING">このセーブは設定されたディスクと異なる地域・プラットフォームのもののため、正しく動作しない可能性があります。</entry>
   <entry key="NO_HIT_STUN">のけぞり無効</entry>

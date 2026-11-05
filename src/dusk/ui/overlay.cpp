@@ -388,7 +388,7 @@ void Overlay::update() {
             }
 
             mModsDisplay->SetAttribute("open", "");
-            set_text_content(mModsDisplay, fmt::format("Enabled Mods:\n{}", enabled_mods_list));
+            set_text_content(mModsDisplay, fmt::format("[ENABLED_MODS]\n{}", enabled_mods_list));
         } else {
             mModsDisplay->RemoveAttribute("open");
         }

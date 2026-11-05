@@ -1445,6 +1445,17 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE">Le chemin de sauvegarde attendu n&#39;est pas un fichier standard.</entry>
+  <entry key="THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS">Le nom du fichier de sauvegarde ne correspond pas aux donn&#233;es qu&#39;il contient.</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE">Le chemin de sauvegarde attendu est d&#233;j&#224; occup&#233;. V&#233;rifiez son nom et sa casse.</entry>
+  <entry key="THE_SAVE_FILE_COULD_NOT_BE_DELETED">Le fichier de sauvegarde n&#39;a pas pu &#234;tre supprim&#233;.</entry>
+  <entry key="ENABLED_MODS">Mods activ&#233;s&#160;:</entry>
+  <entry key="FIRST_PERSON_CAMERA">Cam&#233;ra &#224; la premi&#232;re personne</entry>
+  <entry key="CALL_MIDNA">Appeler Midna</entry>
+  <entry key="OPEN_MAP_SCREEN">Ouvrir l&#39;&#233;cran de carte</entry>
+  <entry key="TOGGLE_MINIMAP">Basculer la mini-carte</entry>
+  <entry key="OPEN_DUSKLIGHT_MENU">Ouvrir le menu de Dusklight</entry>
+  <entry key="TURBO_SPEED_BUTTON">Bouton d&#39;acc&#233;l&#233;ration</entry>
   <entry key="IMPORT_ANYWAY">Importer quand m&#234;me</entry>
   <entry key="REGION_VERSION_WARNING"> Cette sauvegarde provient d&#39;une r&#233;gion ou d&#39;une plateforme diff&#233;rente du disque configur&#233; et peut ne pas fonctionner correctement.</entry>
   <entry key="NO_HIT_STUN">Pas d&#39;&#233;tourdissement</entry>

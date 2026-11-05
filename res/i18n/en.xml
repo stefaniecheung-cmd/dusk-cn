@@ -1445,6 +1445,17 @@
   <entry key="SAVE">Save</entry>
   <entry key="SAVE_FILE">Save file</entry>
   <entry key="COPY_COLOR">Copy color</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE">The expected save path is not a regular file.</entry>
+  <entry key="THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS">The save filename does not match the save data it contains.</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE">The expected save path is occupied. Check its filename and letter case.</entry>
+  <entry key="THE_SAVE_FILE_COULD_NOT_BE_DELETED">The save file could not be deleted.</entry>
+  <entry key="ENABLED_MODS">Enabled Mods:</entry>
+  <entry key="FIRST_PERSON_CAMERA">First Person Camera</entry>
+  <entry key="CALL_MIDNA">Call Midna</entry>
+  <entry key="OPEN_MAP_SCREEN">Open Map Screen</entry>
+  <entry key="TOGGLE_MINIMAP">Toggle Minimap</entry>
+  <entry key="OPEN_DUSKLIGHT_MENU">Open Dusklight Menu</entry>
+  <entry key="TURBO_SPEED_BUTTON">Turbo Speed Button</entry>
   <entry key="IMPORT_ANYWAY">Import Anyway</entry>
   <entry key="REGION_VERSION_WARNING"> This save is from a different region or platform than the configured disc and may not work correctly.</entry>
   <entry key="NO_HIT_STUN">No Hit Stun</entry>

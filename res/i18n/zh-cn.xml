@@ -1445,6 +1445,17 @@
   <entry key="SAVE">保存</entry>
   <entry key="SAVE_FILE">存档文件</entry>
   <entry key="COPY_COLOR">复制颜色</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE">预期的存档路径不是常规文件。</entry>
+  <entry key="THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS">存档文件名与其包含的存档数据不匹配。</entry>
+  <entry key="THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE">预期的存档路径已被占用。请检查文件名和大小写。</entry>
+  <entry key="THE_SAVE_FILE_COULD_NOT_BE_DELETED">无法删除存档文件。</entry>
+  <entry key="ENABLED_MODS">已启用的模组：</entry>
+  <entry key="FIRST_PERSON_CAMERA">第一人称视角</entry>
+  <entry key="CALL_MIDNA">呼唤米德娜</entry>
+  <entry key="OPEN_MAP_SCREEN">打开地图界面</entry>
+  <entry key="TOGGLE_MINIMAP">切换小地图</entry>
+  <entry key="OPEN_DUSKLIGHT_MENU">打开暮色之光菜单</entry>
+  <entry key="TURBO_SPEED_BUTTON">加速按钮</entry>
   <entry key="IMPORT_ANYWAY">仍然导入</entry>
   <entry key="REGION_VERSION_WARNING">该存档来自与当前配置光盘不同的地区或平台版本，可能无法正常运行。</entry>
   <entry key="NO_HIT_STUN">无受击硬直</entry>

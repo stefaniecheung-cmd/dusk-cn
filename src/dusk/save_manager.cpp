@@ -517,7 +517,7 @@ ValueResult<std::vector<uint8_t>> read_current_gci(
                 continue;
             }
             if (!entry.is_regular_file()) {
-                return {failure("The expected save path is not a regular file."), {}};
+                return {failure("[THE_EXPECTED_SAVE_PATH_IS_NOT_A_REGULAR_FILE]"), {}};
             }
             auto read = read_location(
                 borealis::io::fs_path_to_string(entry.path()), kMaxRawSize + kGciHeaderSize);
@@ -531,13 +531,15 @@ ValueResult<std::vector<uint8_t>> read_current_gci(
             if (parsed.value.game != identity.game || parsed.value.maker != identity.maker ||
                 parsed.value.saveName != identity.saveName)
             {
-                return {failure("The save filename does not match the save data it contains."), {}};
+                return {
+                    failure("[THE_SAVE_FILENAME_DOES_NOT_MATCH_THE_SAVE_DATA_IT_CONTAINS]"),
+                    {}};
             }
             return read;
         }
         if (std::filesystem::exists(std::filesystem::symlink_status(canonical))) {
             return {
-                failure("The expected save path is occupied. Check its filename and letter case."),
+                failure("[THE_EXPECTED_SAVE_PATH_IS_OCCUPIED_CHECK_ITS_FILENAME_AND_LETTER_CASE]"),
                 {}};
         }
     } catch (const std::exception& exception) {
@@ -1186,7 +1188,7 @@ Result delete_save(const Storage& storage, const SaveIdentity& identity) {
     } else {
         try {
             if (!std::filesystem::remove(gci_path(storage, identity))) {
-                return failure("The save file could not be deleted.");
+                return failure("[THE_SAVE_FILE_COULD_NOT_BE_DELETED]");
             }
         } catch (const std::exception& exception) {
             return failure(fmt::format("[THE_SAVE_COULD_NOT_BE_DELETED] {}", exception.what()));
